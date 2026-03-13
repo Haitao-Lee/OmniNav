@@ -32,15 +32,15 @@ flowchart LR
     UI --> EM[ElectromagneticNavigation]
     UI --> PR[PunctureRobot]
 
-    DM --> Items[Image / Model3D / Landmark / Tool / OmniTransform]
-    DM --> VTK[VTK Rendering + ITK/VTK IO]
+    DM --> Items["Image / Model3D / Landmark / Tool / OmniTransform"]
+    DM --> VTK["VTK Rendering + ITK/VTK IO"]
 
-    ON --> NDIW[NDICombinedWorker (QThread)]
-    NDIW --> CAPI[CombinedApi / ndicapi]
+    ON --> NDIW["NDICombinedWorker (QThread)"]
+    NDIW --> CAPI["CombinedApi / ndicapi"]
 
-    PR --> RW[RobotWorker (QThread)]
-    RW --> UR[URController (RTDE)]
-    RW --> STEP[Stepper Driver (usb_device/pwm)]
+    PR --> RW["RobotWorker (QThread)"]
+    RW --> UR["URController (RTDE)"]
+    RW --> STEP["Stepper Driver (usb_device/pwm)"]
 ```
 
 ## Tech Stack
@@ -114,3 +114,4 @@ CMakeLists.txt
 
 ## License
 No license file is included. Add one before publishing on GitHub.
+

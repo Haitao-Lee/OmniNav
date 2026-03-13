@@ -1,0 +1,196 @@
+def myProg():
+    def abs(a):
+        if a > 0:
+            return a
+        else:
+            return -a
+        end
+    end
+
+    def isApproxEqual3(a, b):
+        i = 0
+        while i < 3:
+            if abs(a[i] - b[i]) > 0.0001:
+                return False
+            end
+            i = i + 1
+        end
+        return True
+    end
+
+    def isApproxEqual6(a, b):
+        i = 0
+        while i < 6:
+            if abs(a[i] - b[i]) > 0.0001:
+                return False
+            end
+            i = i + 1
+        end
+        return True
+    end
+
+    def noMotion():
+        write_output_boolean_register(64, False)
+        sync()
+        return None
+    end
+
+    def pose2Vec(pose):
+        vec = [0, 0, 0, 0, 0, 0]
+        i = 0
+        while i < 6:
+            vec[i] = pose[i]
+            i = i + 1
+        end
+        return vec
+    end
+
+    def calcFactor(vec, value):
+        ret = 1.0
+        i = 0
+        while i < 6:
+            absVal = abs(vec[i])
+            if absVal > value:
+                tmpRet = value / absVal
+                if tmpRet < ret:
+                    ret = tmpRet
+                end
+            end
+            i = i + 1
+        end
+        return ret
+    end
+
+    def vecSub3(a, b):
+        ret = [0, 0, 0]
+        i = 0
+        while i < 3:
+            ret[i] = a[i] - b[i]
+            i = i + 1
+        end
+        return ret
+    end
+
+    def vecSub6(a, b):
+        ret = [0, 0, 0, 0, 0, 0]
+        i = 0
+        while i < 6:
+            ret[i] = a[i] - b[i]
+            i = i + 1
+        end
+        return ret
+    end
+
+    def vecMul3(vec, value):
+        ret = [0, 0, 0]
+        i = 0
+        while i < 3:
+            ret[i] = vec[i] * value
+            i = i + 1
+        end
+        return ret
+    end
+
+    def vecMul6(vec, value):
+        ret = [0, 0, 0, 0, 0, 0]
+        i = 0
+        while i < 6:
+            ret[i] = vec[i] * value
+            i = i + 1
+        end
+        return ret
+    end
+
+	a = [0, 0, 0, 0, 0, 0]
+
+    lastPose = p[0, 0, 0, 0, 0, 0]
+    lastJoint = [0, 0, 0, 0, 0, 0]
+
+    poseSpeed = [0, 0, 0]
+    jointSpeed = [0, 0, 0, 0, 0, 0]
+
+	while True:
+		moveType = read_input_integer_register(25)
+		isTargetPose = read_input_boolean_register(65)
+
+		i = 0
+		while i < 6:
+			a[i] = read_input_float_register(i + 24)
+			i = i + 1
+		end
+
+		pose = p[a[0], a[1], a[2], a[3], a[4], a[5]]
+		joint = [a[0], a[1], a[2], a[3], a[4], a[5]]
+
+        maxPosV = read_input_float_register(30)
+        maxAngV = read_input_float_register(31)
+        maxPosA = read_input_float_register(32)
+        maxAngA = read_input_float_register(33)
+        timeSlice = read_input_float_register(34)
+        pTerm = read_input_float_register(35)
+
+        if moveType == 0:
+            noMotion()
+        elif moveType == 1:
+            if isTargetPose == True:
+                if pose == lastPose:
+                    noMotion()
+                else:
+                    write_output_boolean_register(64, True)
+                    movel(pose, maxPosA, maxPosV)
+                end
+            else:
+                if joint == lastJoint:
+                    noMotion()
+                else:
+                    write_output_boolean_register(64, True)
+                    movej(joint, maxAngA, maxAngV)
+                end
+            end
+        elif moveType == 2:
+            if isTargetPose == True:
+                joint = get_inverse_kin(pose)
+            end
+            curJoint = get_actual_joint_positions()
+            if isApproxEqual6(joint, curJoint):
+                noMotion()
+            else:
+                jointSpeed = vecSub6(joint, curJoint)
+                jointSpeed = vecMul6(jointSpeed, pTerm)
+
+                factor = calcFactor(jointSpeed, maxAngV)
+                if factor < 1.0:
+                    jointSpeed = vecMul6(jointSpeed, factor)
+                end
+
+                write_output_boolean_register(64, True)
+                speedj(jointSpeed, maxAngV, timeSlice)
+            end
+        elif moveType == 3:
+            if isTargetPose == False:
+                noMotion()
+            else:
+                curPose = get_actual_tcp_pose()
+                if isApproxEqual3(pose, curPose):
+                    noMotion()
+                else:
+                    poseSpeed = vecSub3(pose, curPose)
+                    poseSpeed = vecMul3(poseSpeed, pTerm)
+
+                    factor = maxPosV / norm(poseSpeed)
+                    if factor < 1.0:
+                        poseSpeed = vecMul3(poseSpeed, factor)
+                    end
+
+                    write_output_boolean_register(64, True)
+                    speedl([poseSpeed[0], poseSpeed[1], poseSpeed[2], 0, 0, 0], maxPosA, timeSlice, maxAngA)
+                end
+            end
+        end
+
+        lastPose = pose
+        lastJoint = joint
+    end
+end
+
+myProg()

@@ -1,0 +1,68 @@
+﻿# Build outputs
+/bin/
+/build/
+/out/
+/dist/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*_autogen/
+
+# Visual Studio artifacts
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj.user
+*.VC.db
+*.VC.db-shm
+*.VC.db-wal
+*.ipch
+*.iobj
+*.ipdb
+*.pdb
+*.ilk
+*.obj
+*.tlog
+*.log
+*.idb
+*.exp
+*.lib
+*.dll
+*.exe
+
+# Unix/macOS build artifacts
+*.o
+*.a
+*.so
+*.dylib
+
+# Temporary/incomplete downloads
+*.baiduyun.p.downloading
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+*.opendb
+
+# OS files
+.DS_Store
+
+# Temporary backup for nested git (local only)
+.git_backup/
+
+# Sample build/docs outputs inside SRC
+SRC/CombinedAPIsample/bin/
+SRC/CombinedAPIsample/build/
+SRC/CombinedAPIsample/docs/
+SRC/CombinedAPIsample/.vs/
+SRC/NewUrAPI/.vs/

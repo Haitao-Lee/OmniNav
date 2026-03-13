@@ -1,0 +1,2047 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DataManagerClass</class>
+ <widget class="QMainWindow" name="DataManagerClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>417</width>
+    <height>772</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>DataManager</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(50, 50, 50);
+font: 700 9pt &quot;Microsoft YaHei UI&quot;;
+color: rgb(255, 255, 255);</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="module_widget" native="true">
+      <layout class="QVBoxLayout" name="module_layout" stretch="20,70,60">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="operation_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(50, 50, 50);
+border-color: rgb(100, 100, 100);</string>
+         </property>
+         <property name="title">
+          <string/>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <item row="2" column="2">
+           <widget class="QPushButton" name="reset_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>reset</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/3D.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QPushButton" name="crossline_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>cross line</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/withdraw.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="registration_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>registration</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/anzhuangguanli.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QPushButton" name="callibration_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>callibration</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/calibration.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+            <property name="default">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QPushButton" name="robotics_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>connect to robotics</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/connect.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="5">
+           <widget class="QPushButton" name="location_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>localization</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/measure.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3">
+           <widget class="QPushButton" name="measure_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>measure</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/slice.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QPushButton" name="volume_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>volume calculation of meshes</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/reset1.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="5">
+           <widget class="QPushButton" name="project_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>projection</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/visible.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="connect_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="toolTip">
+             <string>connect to NDI tracker</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(120, 120, 120);
+image: url(:/DataManager/localization.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset theme="accessories-calculator"/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="databox">
+         <property name="styleSheet">
+          <string notr="true">border:none;</string>
+         </property>
+         <property name="title">
+          <string/>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QTabWidget" name="data_widget">
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>9</pointsize>
+              <italic>false</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(50, 50, 50);
+color: rgb(255,255,255);</string>
+            </property>
+            <property name="tabShape">
+             <enum>QTabWidget::Triangular</enum>
+            </property>
+            <property name="currentIndex">
+             <number>3</number>
+            </property>
+            <property name="elideMode">
+             <enum>Qt::ElideLeft</enum>
+            </property>
+            <property name="usesScrollButtons">
+             <bool>true</bool>
+            </property>
+            <property name="documentMode">
+             <bool>true</bool>
+            </property>
+            <property name="tabsClosable">
+             <bool>false</bool>
+            </property>
+            <property name="tabBarAutoHide">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="image_widget">
+             <property name="font">
+              <font>
+               <family>Microsoft YaHei UI</family>
+               <pointsize>9</pointsize>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(50, 50, 50);
+border:none;</string>
+             </property>
+             <attribute name="title">
+              <string>Image</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_4" stretch="7,1">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QTableWidget" name="image_tw">
+                <property name="font">
+                 <font>
+                  <family>Microsoft YaHei UI</family>
+                  <pointsize>9</pointsize>
+                  <italic>false</italic>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">QTableWidget {
+    color: rgb(0, 0, 0);
+    background-color: rgb(80, 80, 80);
+    gridline-color: #6c6c6c;  
+}
+
+/* 表头（第一行）的样式 */
+QHeaderView::section {
+    background-color: rgb(77,77,115);
+    color: #FFFFFF;
+    font-size: 6 pt;
+    font-weight: bold;
+    border: 1px solid #6c6c6c;
+}
+
+/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+QTableCornerButton::section {
+    background-color: #404040;
+    border: 1px solid #6c6c6c;
+}</string>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QAbstractScrollArea::AdjustToContents</enum>
+                </property>
+                <property name="textElideMode">
+                 <enum>Qt::ElideMiddle</enum>
+                </property>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Name</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Age</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Resolution</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Spacing</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Orientation</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Path</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="4,1,4,1,4">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <property name="leftMargin">
+                 <number>25</number>
+                </property>
+                <property name="topMargin">
+                 <number>10</number>
+                </property>
+                <property name="rightMargin">
+                 <number>25</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="add_img_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;
+</string>
+                  </property>
+                  <property name="text">
+                   <string>  add  </string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/add.png</normaloff>:/DataManager/add.png</iconset>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="autoRepeat">
+                   <bool>true</bool>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                  <property name="default">
+                   <bool>false</bool>
+                  </property>
+                  <property name="flat">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="delete_img_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> delete</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/delete.png</normaloff>:/DataManager/delete.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_5">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="export_img_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> export</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/export.png</normaloff>:/DataManager/export.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="model__widget">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(50, 50, 50);</string>
+             </property>
+             <attribute name="title">
+              <string>3D Model</string>
+             </attribute>
+             <layout class="QGridLayout" name="gridLayout_4" rowstretch="7,1" rowminimumheight="6,1">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QTableWidget" name="mesh_tw">
+                <property name="styleSheet">
+                 <string notr="true">QTableWidget {
+    color: rgb(0, 0, 0);
+    background-color: rgb(80, 80, 80);
+    gridline-color: #6c6c6c;  
+}
+
+/* 表头（第一行）的样式 */
+QHeaderView::section {
+    background-color: rgb(77,77,115);
+    color: #FFFFFF;
+    font-size: 6 pt;
+    font-weight: bold;
+    border: 1px solid #6c6c6c;
+}
+
+/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+QTableCornerButton::section {
+    background-color: #404040;
+    border: 1px solid #6c6c6c;
+}</string>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::NoFrame</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>0</number>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QAbstractScrollArea::AdjustToContents</enum>
+                </property>
+                <property name="textElideMode">
+                 <enum>Qt::ElideMiddle</enum>
+                </property>
+                <property name="showGrid">
+                 <bool>false</bool>
+                </property>
+                <property name="gridStyle">
+                 <enum>Qt::SolidLine</enum>
+                </property>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Name</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Visible</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Opacity</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Color</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Tool</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Orientation</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Path</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="4,1,4,1,4">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <property name="leftMargin">
+                 <number>25</number>
+                </property>
+                <property name="topMargin">
+                 <number>10</number>
+                </property>
+                <property name="rightMargin">
+                 <number>25</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="add_model_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string>  add  </string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/add.png</normaloff>:/DataManager/add.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_10">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="delete_model_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> delete</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/delete.png</normaloff>:/DataManager/delete.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_11">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="export_model_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> export</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/export.png</normaloff>:/DataManager/export.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="landmark_widget">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(50, 50, 50);\nborder:none;</string>
+             </property>
+             <attribute name="title">
+              <string>Landmark</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_14" stretch="7,1">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QTableWidget" name="landmark_tw">
+                <property name="styleSheet">
+                 <string notr="true">QTableWidget {
+    color: rgb(0, 0, 0);
+    background-color: rgb(80, 80, 80);
+    gridline-color: #6c6c6c;  
+}
+
+/* 表头（第一行）的样式 */
+QHeaderView::section {
+    background-color: rgb(77,77,115);
+    color: #FFFFFF;
+    font-size: 6 pt;
+    font-weight: bold;
+    border: 1px solid #6c6c6c;
+}
+
+/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+QTableCornerButton::section {
+    background-color: #404040;
+    border: 1px solid #6c6c6c;
+}</string>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QAbstractScrollArea::AdjustToContents</enum>
+                </property>
+                <property name="textElideMode">
+                 <enum>Qt::ElideMiddle</enum>
+                </property>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Point set</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Scalar</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Color</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Visible</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Opacity</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Radius</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Tool</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Orientation</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_19" stretch="4,1,4,1,4">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <property name="leftMargin">
+                 <number>25</number>
+                </property>
+                <property name="topMargin">
+                 <number>10</number>
+                </property>
+                <property name="rightMargin">
+                 <number>25</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="add_landmark_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string>  add  </string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/add.png</normaloff>:/DataManager/add.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_14">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="delete_landmark_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> delete</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/delete.png</normaloff>:/DataManager/delete.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_26">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="export_landmark_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> export</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/export.png</normaloff>:/DataManager/export.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tool_widget">
+             <attribute name="title">
+              <string>tool</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_3" stretch="7,1">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QTableWidget" name="tool_tw">
+                <property name="styleSheet">
+                 <string notr="true">QTableWidget {
+    color: rgb(0, 0, 0);
+    background-color: rgb(80, 80, 80);
+    gridline-color: #6c6c6c;  
+}
+
+/* 表头（第一行）的样式 */
+QHeaderView::section {
+    background-color: rgb(77,77,115);
+    color: #FFFFFF;
+    font-size: 6 pt;
+    font-weight: bold;
+    border: 1px solid #6c6c6c;
+}
+
+/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+QTableCornerButton::section {
+    background-color: #404040;
+    border: 1px solid #6c6c6c;
+}</string>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QAbstractScrollArea::AdjustToContents</enum>
+                </property>
+                <property name="textElideMode">
+                 <enum>Qt::ElideMiddle</enum>
+                </property>
+                <attribute name="horizontalHeaderHighlightSections">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Name</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Visible</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Opacity</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Color</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Radius</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Length</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Orientation</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Transform</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Handle</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>RMSE</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Path</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_22" stretch="4,1,4,1,4">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <property name="leftMargin">
+                 <number>25</number>
+                </property>
+                <property name="topMargin">
+                 <number>10</number>
+                </property>
+                <property name="rightMargin">
+                 <number>25</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="add_tool_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string>  add  </string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/add.png</normaloff>:/DataManager/add.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_20">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="delete_tool_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> delete</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/delete.png</normaloff>:/DataManager/delete.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_29">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="export_tool_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> export</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/export.png</normaloff>:/DataManager/export.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="rom_widget">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(50, 50, 50);
+color: rgb(255,255,255);</string>
+             </property>
+             <attribute name="title">
+              <string>Transform</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_15" stretch="7,1">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QTableWidget" name="transform_tw">
+                <property name="styleSheet">
+                 <string notr="true">QTableWidget {
+    color: rgb(0, 0, 0);
+    background-color: rgb(80, 80, 80);
+    gridline-color: #6c6c6c;  
+}
+
+/* 表头（第一行）的样式 */
+QHeaderView::section {
+    background-color: rgb(77,77,115);
+    color: #FFFFFF;
+    font-size: 6 pt;
+    font-weight: bold;
+    border: 1px solid #6c6c6c;
+}
+
+/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+QTableCornerButton::section {
+    background-color: #404040;
+    border: 1px solid #6c6c6c;
+}</string>
+                </property>
+                <property name="sizeAdjustPolicy">
+                 <enum>QAbstractScrollArea::AdjustToContents</enum>
+                </property>
+                <property name="textElideMode">
+                 <enum>Qt::ElideMiddle</enum>
+                </property>
+                <attribute name="horizontalHeaderHighlightSections">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Name</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Value</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_20" stretch="4,1,4,1,4">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <property name="leftMargin">
+                 <number>25</number>
+                </property>
+                <property name="topMargin">
+                 <number>10</number>
+                </property>
+                <property name="rightMargin">
+                 <number>25</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="add_transform_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string>  add  </string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/add.png</normaloff>:/DataManager/add.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_18">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="delete_transform_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> delete</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/delete.png</normaloff>:/DataManager/delete.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_27">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="export_transform_btn">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Microsoft YaHei UI</family>
+                    <pointsize>9</pointsize>
+                    <italic>false</italic>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(150, 150, 150);
+border-radius: 8px;</string>
+                  </property>
+                  <property name="text">
+                   <string> export</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resource/DataManager.qrc">
+                    <normaloff>:/DataManager/export.png</normaloff>:/DataManager/export.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">border:none;
+color: rgb(255, 255, 255);
+background-color: rgb(50, 50, 50);</string>
+         </property>
+         <property name="tabPosition">
+          <enum>QTabWidget::North</enum>
+         </property>
+         <property name="tabShape">
+          <enum>QTabWidget::Triangular</enum>
+         </property>
+         <property name="currentIndex">
+          <number>1</number>
+         </property>
+         <property name="documentMode">
+          <bool>true</bool>
+         </property>
+         <property name="tabsClosable">
+          <bool>false</bool>
+         </property>
+         <property name="movable">
+          <bool>false</bool>
+         </property>
+         <property name="tabBarAutoHide">
+          <bool>false</bool>
+         </property>
+         <widget class="QWidget" name="info">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(80, 80, 80);border:none;</string>
+          </property>
+          <attribute name="title">
+           <string>Message</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QPlainTextEdit" name="info_te">
+             <property name="styleSheet">
+              <string notr="true">border:none;
+color: rgb(0,0, 0);
+background-color: rgb(50, 50, 50);</string>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="Property">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <attribute name="title">
+           <string>Property</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_6" stretch="7,7,2">
+           <item>
+            <widget class="QGroupBox" name="groupBox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <family>Microsoft YaHei UI</family>
+               <pointsize>9</pointsize>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="title">
+              <string>2D property</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout" columnstretch="1,4">
+              <property name="leftMargin">
+               <number>10</number>
+              </property>
+              <property name="topMargin">
+               <number>20</number>
+              </property>
+              <property name="rightMargin">
+               <number>10</number>
+              </property>
+              <property name="bottomMargin">
+               <number>20</number>
+              </property>
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <item row="0" column="1">
+               <widget class="QScrollBar" name="lower2Dbar">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QSpinBox" name="lower2Dbox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QSpinBox" name="upper2Dbox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QScrollBar" name="upper2Dbar">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>3D property</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,4">
+              <property name="leftMargin">
+               <number>10</number>
+              </property>
+              <property name="topMargin">
+               <number>20</number>
+              </property>
+              <property name="rightMargin">
+               <number>10</number>
+              </property>
+              <property name="bottomMargin">
+               <number>20</number>
+              </property>
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QSpinBox" name="lower3Dbox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QScrollBar" name="upper3Dbar">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QSpinBox" name="upper3Dbox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QScrollBar" name="lower3Dbar">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string/>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,1,1">
+              <property name="spacing">
+               <number>15</number>
+              </property>
+              <property name="leftMargin">
+               <number>10</number>
+              </property>
+              <property name="topMargin">
+               <number>20</number>
+              </property>
+              <property name="rightMargin">
+               <number>10</number>
+              </property>
+              <property name="bottomMargin">
+               <number>20</number>
+              </property>
+              <item>
+               <widget class="QCheckBox" name="volume_cbox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTipDuration">
+                 <number>-1</number>
+                </property>
+                <property name="layoutDirection">
+                 <enum>Qt::RightToLeft</enum>
+                </property>
+                <property name="text">
+                 <string>Volumn</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="orientation_cbb">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>RAS</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>IJK</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="color3D_btn_top">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>The top gradient color of the 3D viewport</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(85, 170, 127);</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="color3D_btn_bot">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>The bottom gradient color of the 3D viewport</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(255, 255, 255);</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="Advance">
+          <attribute name="title">
+           <string>Advanced</string>
+          </attribute>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resource/DataManager.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="Manubar">
+    <file>cross_line.png</file>
+    <file>text.png</file>
+    <file>folder.png</file>
+    <file>save.png</file>
+    <file>setting.png</file>
+  </qresource>
+</RCC>

@@ -1,0 +1,35 @@
+{
+  "display": {
+    "view_modes": {
+      "ALLWIN": 0,
+      "AXIAL": 1,
+      "VIEW3D": 2,
+      "SAGITA": 3,
+      "CORNAL": 4
+    },
+    "view_order": [1, 0, 2, 3],
+    "colors": {
+      "initial_2d_color": [0, 0, 0],
+      "bottom_3d_color": [1.0, 1.0, 1.0],
+      "top_3d_color": [0.3019, 0.3019, 0.4509]
+    },
+    "geometry": {
+      "cross_line_length": 800,
+      "line_actor_z_offset": 0,
+      "units": {
+        "cubic": "³"
+      }
+    },
+    "camera": {
+      "parallel_scale": 120,
+      "zoom": 1.2,
+      "distance": 300,
+      "view_up": [
+        [0, -1, 0],
+        null,
+        [0, 1, 0],
+        [0, 1, 0]
+      ]
+    }
+  }
+}

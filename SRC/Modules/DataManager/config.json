@@ -1,0 +1,79 @@
+{
+  "DataManager": {
+    "range": {
+      "minimum": -2000,
+      "maximum": 2000
+    },
+    "thresholds": {
+      "lower_2d_value": -800,
+      "upper_2d_value": 500,
+      "lower_3d_value": -600,
+      "upper_3d_value": 2000
+    },
+    "volume_property": {
+      "colors": [
+        [1.0, 1.0, 1.0],
+        [1.0, 1.0, 1.0],
+        [1.0, 1.0, 1.0]
+      ],
+      "opacity": 1.0
+    },
+    "images": {
+      "matrices": {
+        "axial": [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        "sagittal": [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+        "cornal": [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1]
+      },
+      "normals": {
+        "axial": [0, 0, 1],
+        "sagittal": [1, 0, 0],
+        "cornal": [0, 1, 0]
+      },
+      "camera": {
+        "parallel_scale": 120,
+        "zoom": 1.2,
+        "distance": 300,
+        "view_up": [
+          [0, -1, 0],
+          null,
+          [0, 1, 0],
+          [0, 1, 0]
+        ]
+      },
+      "scroll_list": [0, 1, 2]
+    },
+    "landmarks": {
+      "color": [1, 0, 0],
+      "radius": 2,
+      "visible": 1,
+      "opacity": 1.0
+    },
+    "meshes": {
+      "colors": [
+        [1.0, 0.9, 0.8],
+        [0.4, 0.7, 0.8],
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 0],
+        [0, 1, 1]
+      ],
+      "visible": 1,
+      "opacity": 1.0
+    },
+    "tool": {
+      "color": [1, 1, 0],
+      "visible": 1,
+      "opacity": 1.0,
+      "matrix": [
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+      ]
+    },
+    "table_widget": {
+      "text_margin": 1.2,
+      "min_margin": 60
+    }
+  }
+}

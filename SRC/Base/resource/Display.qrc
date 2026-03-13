@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="Display">
+    <file>reset.png</file>
+    <file>90.png</file>
+    <file>zoom_in.png</file>
+    <file>full_screen.png</file>
+  </qresource>
+  <qresource prefix="新前缀"/>
+</RCC>

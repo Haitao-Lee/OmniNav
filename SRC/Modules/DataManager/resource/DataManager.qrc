@@ -1,0 +1,18 @@
+<RCC>
+  <qresource prefix="DataManager">
+    <file>connect.png</file>
+    <file>reset1.png</file>
+    <file>anzhuangguanli.png</file>
+    <file>localization.png</file>
+    <file>export.png</file>
+    <file>3D.png</file>
+    <file>unvisible.png</file>
+    <file>visible.png</file>
+    <file>calibration.png</file>
+    <file>withdraw.png</file>
+    <file>measure.png</file>
+    <file>slice.png</file>
+    <file>delete.png</file>
+    <file>add.png</file>
+  </qresource>
+</RCC>

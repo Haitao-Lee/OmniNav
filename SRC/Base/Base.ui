@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BaseClass</class>
+ <widget class="QMainWindow" name="BaseClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1457</width>
+    <height>661</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::PreventContextMenu</enum>
+  </property>
+  <property name="windowTitle">
+   <string>OmniNavigator</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(77,77,115);
+font: 700 9pt &quot;Microsoft YaHei UI&quot;;
+color: rgb(255, 255, 255);</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="contextMenuPolicy">
+    <enum>Qt::DefaultContextMenu</enum>
+   </property>
+   <property name="locale">
+    <locale language="English" country="UnitedStates"/>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="sizeConstraint">
+     <enum>QLayout::SetDefaultConstraint</enum>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="oper_vis_widget" native="true">
+      <layout class="QVBoxLayout" name="whole_layout" stretch="5,95">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="manu_widget" native="true">
+         <layout class="QHBoxLayout" name="manubar" stretch="2,2,2,2,2,6,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="file_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Import file</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(50, 50, 50);
+image: url(:/Manubar/text.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="default">
+             <bool>false</bool>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="folder_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Import folder</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(50, 50, 50);
+image: url(:/Manubar/folder.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="save_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Save all</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(50, 50, 50);
+image: url(:/Manubar/save.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="setting_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(50, 50, 50);
+image: url(:/Manubar/setting.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="cross_line_btn">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(50, 50, 50);
+image: url(:/Manubar/cross_line.png);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="modules_cbb">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+            <item>
+             <property name="text">
+              <string>Welcome to OmniNavigator</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="layout_cbb">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="currentText">
+             <string>3D left up</string>
+            </property>
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+            <item>
+             <property name="text">
+              <string>3D left up</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>3D left down</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>3D right up</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>3D right down</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>3D up</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>3D bottom</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>3D left</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>3D right</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark0">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark1">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark2">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark3">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark4">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark5">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark6">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark7">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark8">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark9">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark10">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark11">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark12">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark13">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="regis_mark14">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="visual_label">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(77,77,115);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="main_h_layout" stretch="4,6">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QWidget" name="module_widget" native="true">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(50, 50, 50);</string>
+           </property>
+           <layout class="QVBoxLayout" name="module_layout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="display_widget" native="true">
+           <layout class="QGridLayout" name="display_layout">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item row="1" column="0">
+             <widget class="QGroupBox" name="view_box2">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);
+background-color: rgb(0, 0, 0);</string>
+              </property>
+              <property name="title">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QGroupBox" name="view_box0">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(0, 0, 0);</string>
+              </property>
+              <property name="title">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QGroupBox" name="view_box3">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);
+background-color: rgb(0, 0, 0);</string>
+              </property>
+              <property name="title">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QGroupBox" name="view_box1">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(0, 0, 0);</string>
+              </property>
+              <property name="title">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resource/Base.qrc"/>
+ </resources>
+ <connections/>
+</ui>

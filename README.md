@@ -674,7 +674,7 @@ git commit -m "Add MIT License"
 
 - **作者**：Haitao-Lee
 - **GitHub Issues**：https://github.com/Haitao-Lee/OmniNav/issues
-- **邮件**：（请添加联系方式）
+- **邮件**：hunter_lee163@163.com
 
 ---
 

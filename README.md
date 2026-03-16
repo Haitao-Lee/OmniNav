@@ -84,7 +84,7 @@ flowchart LR
     PR --> UR["URWorker (QThread)"]
     UR --> RTDE["UR RTDE"]
     UR --> STEP["Stepper Driver"]
-    STEP --> USB[librockmong (USB)]
+    STEP --> USB["librockmong (USB)"]
 ```
 
 ### 架构说明

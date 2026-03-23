@@ -1,4 +1,4 @@
-#include "IOUtility.h"
+﻿#include "IOUtility.h"
 #include "ByteOrderConvert.hpp"
 #include "EasyDataIO.h"
 #include "scope_guard.hpp"
@@ -14,7 +14,7 @@ namespace IOUtility {
     nonstd::span<char> ReadPacket(DataStream &dataStream, EasyBuffer &buffer) {
         uint16_t packetLength = -1;
 //    dataStream >> packetLength;
-        { // 替代上面那句话
+        { // Replace the line above.
             static thread_local char packetLengthBuf[2];
             auto ret = dataStream.readRawData(packetLengthBuf, 2);
             if (ret != 2) {
@@ -35,7 +35,7 @@ namespace IOUtility {
     nonstd::span<char> ReadPacket(QIODevice *device, EasyBuffer &buffer) {
         uint16_t packetLength = -1;
 
-        // 获取报文长度
+        // Get packet length.
         static thread_local char packetLengthBuf[2];
         auto ret = TryReadAll(device, packetLengthBuf, 2);
         if (!ret) [[unlikely]] {
@@ -87,7 +87,7 @@ namespace IOUtility {
         size_t cur = 0, ret;
         auto closer = sg::make_scope_guard([&]() { if (out) *out = cur; });
         while (cur != len) {
-            if (device->bytesAvailable() <= 0 && ableToWait) { // TODO: 增加当不支持 wait 时，手动等待 readyRead() 的功能
+            if (device->bytesAvailable() <= 0 && ableToWait) { // TODO: When wait is unsupported, manually wait for readyRead().
                 auto ok = device->waitForReadyRead(-1);
                 if (!ok) [[unlikely]] {
                     SPDLOG_WARN("Failed while waiting for more data to read: {}",

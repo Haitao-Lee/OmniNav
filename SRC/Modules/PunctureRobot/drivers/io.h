@@ -1,4 +1,4 @@
-#ifndef __IO_H
+﻿#ifndef __IO_H
 #define __IO_H
 
 #include <stdint.h>
@@ -17,24 +17,24 @@ extern "C" {
 
 	enum IO_MODE
 	{
-		IO_MODE_INPUT,			//输入模式
-		IO_MODE_OUTPUT,			//输出模式
-		IO_MODE_OPEN_DRAIN,		//开漏模式
+		IO_MODE_INPUT,			//Input mode.
+		IO_MODE_OUTPUT,			//Output mode.
+		IO_MODE_OPEN_DRAIN,		//Open-drain mode.
 	};
 	typedef enum IO_MODE IO_MODE_t;
 
 	enum IO_PULL
 	{
-		IO_NOPULL,			//没有上拉下拉
-		IO_PULLUP,			//上拉
-		IO_PULLDOWN,		//下拉
+		IO_NOPULL,			//No pull-up/down.
+		IO_PULLUP,			//Pull-up.
+		IO_PULLDOWN,		//Pull-down.
 	};
 	typedef enum IO_PULL IO_PULL_t;
 
 	enum IO_STATE
 	{
-		IO_STATE_LOW,		//低电平
-		IO_STATE_HIGH,		//高电平
+		IO_STATE_LOW,		//Low level.
+		IO_STATE_HIGH,		//High level.
 	};
 	typedef enum IO_STATE IO_STATE_t;
 
@@ -78,24 +78,24 @@ extern "C" {
 	};
 	typedef struct IO_WriteStruct_Rx IO_WriteStruct_Rx_t;
 	
-	//初始化引脚工作模式
-	//SerialNumber: 设备序号
-	//Pin：引脚编号。0，P0. 1, P1...
-	//Mode：输入输出模式。0，输入。1，输出。2，开漏
-	//Pull：上拉下拉电阻。0，无。1，使能内部上拉。2，使能内部下拉
-	//函数返回：0，正常；<0，异常
+	//Initialize pin mode.
+	//SerialNumber: device serial number.
+	//Pin：Pin: pin index. 0 = P0, 1 = P1...
+	//Mode：Mode: I/O mode. 0 = input, 1 = output, 2 = open-drain.
+	//Pull：Pull: pull resistor. 0 = none, 1 = internal pull-up, 2 = internal pull-down.
+	//Return: 0 for success; <0 for error.
 	int WINAPI IO_InitPin(int SerialNumber, int Pin, int Mode, int Pull);
-	//读取引脚状态
-	//SerialNumber: 设备序号
-	//Pin：引脚编号。0，P0. 1, P1...
-	//PinState：返回引脚状态。0，低电平。1，高电平
-	//函数返回：0，正常；<0，异常
+	//Read pin state.
+	//SerialNumber: device serial number.
+	//Pin：Pin: pin index. 0 = P0, 1 = P1...
+	//PinState：PinState: returned pin state. 0 = low, 1 = high.
+	//Return: 0 for success; <0 for error.
 	int WINAPI IO_ReadPin(int SerialNumber, int Pin, int *PinState);
-	//控制引脚输出状态
-	//SerialNumber: 设备序号
-	//Pin：引脚编号。0，P0. 1, P1...
-	//PinState：引脚状态。0，低电平。1，高电平
-	//函数返回：0，正常；<0，异常
+	//Set pin output state.
+	//SerialNumber: device serial number.
+	//Pin：Pin: pin index. 0 = P0, 1 = P1...
+	//PinState：PinState: pin state. 0 = low, 1 = high.
+	//Return: 0 for success; <0 for error.
 	int WINAPI IO_WritePin(int SerialNumber, int Pin, int PinState);
 
 	int WINAPI IO_InitMultiPin(int SerialNumber, IO_InitStruct_Tx_t* TxStruct, IO_InitStruct_Rx_t* RxStruct, int Number);
@@ -107,3 +107,4 @@ extern "C" {
 #endif
 
 #endif
+

@@ -1,4 +1,4 @@
-//----------------------------------------------------------------------------
+﻿//----------------------------------------------------------------------------
 //
 //  Copyright (C) 2017, Northern Digital Inc. All rights reserved.
 //
@@ -36,7 +36,7 @@
 #ifndef MARKER_DATA_HPP
 #define MARKER_DATA_HPP
 
-// 强制定义为空，彻底消除 dllimport
+// Force an empty definition to fully remove dllimport.
 #define CAPICOMMON_API
 
 

@@ -1,4 +1,4 @@
-#include "DataManager.h"
+﻿#include "DataManager.h"
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QJsonDocument>
@@ -658,7 +658,7 @@ void DataManager::createActions()
 
 bool DataManager::addImage(std::string filePath)
 {
-    // 注意：这里使用了你代码片段中传入 orientation 的构造函数
+    // Note: this uses the constructor with the orientation passed in your snippet.
     Image* newImage = new Image(filePath, ui.orientation_cbb->currentText().toStdString());
     
     if (!newImage->getImageData()) {
@@ -703,7 +703,7 @@ bool DataManager::addImage(std::string filePath)
     ui.image_tw->setItem(row, 3, spacingItem);
 
     // =========================================================
-    // Column 4: Orientation (新增列)
+    // Column 4: Orientation (added column).
     // =========================================================
     QTableWidgetItem* orientItem = new QTableWidgetItem(QString::fromStdString(newImage->getOrientation()));
     orientItem->setTextAlignment(Qt::AlignCenter);
@@ -711,13 +711,13 @@ bool DataManager::addImage(std::string filePath)
     ui.image_tw->setItem(row, 4, orientItem);
 
     // =========================================================
-    // Column 5: Path (原 Column 4 移动到这里)
+    // Column 5: Path (moved from Column 4).
     // =========================================================
     QTableWidgetItem* pathItem = new QTableWidgetItem(QString::fromStdString(newImage->getPath()));
     pathItem->setTextAlignment(Qt::AlignCenter);
     pathItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     pathItem->setToolTip(QString::fromStdString(newImage->getPath()));
-    ui.image_tw->setItem(row, 5, pathItem); // 注意这里变成了 5
+    ui.image_tw->setItem(row, 5, pathItem); // Note: this is now 5.
 
     ui.image_tw->selectRow(row);
     m_currentImageIndex = row;
@@ -916,7 +916,7 @@ void DataManager::onImageTableSelectionChanged()
 
 bool DataManager::add3Dmodel(std::string filePath, std::string orientation_sign)
 {
-    // 1. 创建模型对象
+    // 1. Create the model object.
     if (orientation_sign.empty()) {
         orientation_sign = ui.orientation_cbb->currentText().toStdString();
     }
@@ -931,7 +931,7 @@ bool DataManager::add3Dmodel(std::string filePath, std::string orientation_sign)
     newMesh->setFilePath(filePath);
     newMesh->setName(fileInfo.fileName().toStdString());
 
-    // 2. 读取配置 (透明度、可见性、颜色循环)
+    // 2. Read config (opacity, visibility, color cycling).
     QJsonObject dmConfig = m_config["DataManager"].toObject();
     QJsonObject meshConfig = dmConfig["meshes"].toObject();
 
@@ -959,7 +959,7 @@ bool DataManager::add3Dmodel(std::string filePath, std::string orientation_sign)
     newMesh->createActor();
     m_meshes.push_back(newMesh);
 
-    // 3. 在表格中插入新行
+    // 3. Insert a new row in the table.
     int row = ui.mesh_tw->rowCount();
     ui.mesh_tw->insertRow(row);
 
@@ -985,7 +985,7 @@ bool DataManager::add3Dmodel(std::string filePath, std::string orientation_sign)
     visBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     bool isVis = newMesh->getVisible();
     
-    // 使用你代码中的样式定义
+    // Use the style definitions from your code.
     QString visStyle = "QPushButton { image: url(:/DataManager/visible.png); border: none; }";
     QString unvisStyle = "QPushButton { image: url(:/DataManager/unvisible.png); border: none; }";
 
@@ -1062,7 +1062,7 @@ bool DataManager::add3Dmodel(std::string filePath, std::string orientation_sign)
 
 
     // ---------------------------------------------------------
-    // Column 4: Tool (ComboBox) [新增功能]
+    // Column 4: Tool (ComboBox) [new feature].
     // ---------------------------------------------------------
     QWidget* toolContainer = new QWidget();
     toolContainer->setStyleSheet("background-color: transparent;");
@@ -1073,11 +1073,11 @@ bool DataManager::add3Dmodel(std::string filePath, std::string orientation_sign)
     QComboBox* toolCbb = new QComboBox();
     toolCbb->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     
-    // 1. 添加默认选项 None (Index 0)
+    // 1. Add the default option None (index 0).
     toolCbb->addItem("None"); 
 
-    // 2. 遍历 m_tools 添加选项
-    // 假设 m_tools 存储的是 Tool* 指针
+    // 2. Iterate m_tools to add options.
+    // Assume m_tools stores Tool* pointers.
     for (const auto& tool : m_tools) {
         if (tool) {
             toolCbb->addItem(QString::fromStdString(tool->getName())); 
@@ -1085,7 +1085,7 @@ bool DataManager::add3Dmodel(std::string filePath, std::string orientation_sign)
     }
 
     toolLayout->addWidget(toolCbb);
-    ui.mesh_tw->setCellWidget(row, 4, toolContainer); // 设置在第 4 列
+    ui.mesh_tw->setCellWidget(row, 4, toolContainer); // Set in column 4.
 
     // ---------------------------------------------------------
     // Column 5: Orientation (Text)
@@ -1096,13 +1096,13 @@ bool DataManager::add3Dmodel(std::string filePath, std::string orientation_sign)
     ui.mesh_tw->setItem(row, 5, orientItem);
 
     // ---------------------------------------------------------
-    // Column 6: Path (Text) [原 Column 4]
+    // Column 6: Path (Text) [formerly Column 4].
     // ---------------------------------------------------------
     QTableWidgetItem* pathItem = new QTableWidgetItem(QString::fromStdString(filePath));
     pathItem->setTextAlignment(Qt::AlignCenter);
     pathItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     pathItem->setToolTip(QString::fromStdString(filePath));
-    ui.mesh_tw->setItem(row, 6, pathItem); // 移动到第 6 列
+    ui.mesh_tw->setItem(row, 6, pathItem); // Move to column 6.
 
     ui.mesh_tw->resizeColumnsToContents();
 
@@ -1421,7 +1421,7 @@ bool DataManager::addLandmark(double* coordinates, std::string name, std::string
     }
 
     connect(toolCbb, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        // 1. 找到当前触发信号的行和其 Point set Name
+        // 1. Find the row that triggered the signal and its point set name.
         int currentRow = -1;
         QString currentPointSet;
 
@@ -1441,7 +1441,7 @@ bool DataManager::addLandmark(double* coordinates, std::string name, std::string
 
         if(currentRow == -1 || currentPointSet.isEmpty()) return;
 
-        // 2. 遍历表格，同步所有相同 Point set 的下拉框
+        // 2. Traverse the table and sync all combo boxes with the same point set.
         for(int i = 0; i < ui.landmark_tw->rowCount(); ++i) {
             if(i == currentRow) continue; 
 
@@ -1657,7 +1657,7 @@ bool DataManager::loadLandmark(std::string filePath)
 
     QJsonObject rootObj = doc.object();
 
-    // 关键：只有识别到 "Landmark" 关键字才继续处理
+    // Key: proceed only when the "Landmark" keyword is found.
     if (!rootObj.contains("Landmark")) {
         return false;
     }
@@ -1666,12 +1666,12 @@ bool DataManager::loadLandmark(std::string filePath)
 
     QJsonObject lmData = rootObj["Landmark"].toObject();
 
-    // 遍历组名
+    // Iterate over group names.
     for (auto it = lmData.begin(); it != lmData.end(); ++it) {
         std::string groupName = it.key().toStdString();
         QJsonArray pointsArr = it.value().toArray();
 
-        // 遍历该组下的所有点
+        // Iterate all points under this group.
         for (const QJsonValue& pv : pointsArr) {
             if (pv.isArray()) {
                 QJsonArray cArr = pv.toArray();
@@ -1770,7 +1770,7 @@ bool DataManager::addTool(QString path)
     ui.tool_tw->setCellWidget(row, 2, opContainer);
 
     // ---------------------------------------------------------
-    // Column 3: Color (Button) [新增列]
+    // Column 3: Color (Button) [added column].
     // ---------------------------------------------------------
     QWidget* colorContainer = new QWidget();
     colorContainer->setStyleSheet("background-color: transparent;");
@@ -1819,7 +1819,7 @@ bool DataManager::addTool(QString path)
     radSpinBox->setDecimals(1);
     radSpinBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
-    // 修复：添加 QObject::connect 解决重载二义性错误
+    // Fix: add QObject::connect to resolve overload ambiguity.
     QObject::connect(radSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), [=](double value){
         newTool->setRadius(value);
         emit signalUpdateViews();
@@ -1851,7 +1851,7 @@ bool DataManager::addTool(QString path)
     ui.tool_tw->setCellWidget(row, 5, lenContainer);
 
     // ---------------------------------------------------------
-    // Column 6: Direction (ComboBox) [修改列]
+    // Column 6: Direction (ComboBox) [modified column].
     // ---------------------------------------------------------
     QWidget* dirContainer = new QWidget();
     dirContainer->setStyleSheet("background-color: transparent;");
@@ -1860,7 +1860,7 @@ bool DataManager::addTool(QString path)
     dirLayout->setAlignment(Qt::AlignCenter);
 
     QComboBox* dirCombo = new QComboBox();
-    dirCombo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed); // ComboBox 通常垂直方向固定高度
+    dirCombo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed); // ComboBox usually has a fixed height vertically.
     
     QStringList directions;
     directions << "Z-" << "Z+" << "Y-" << "Y+" << "X-" << "X+";
@@ -2370,14 +2370,14 @@ bool DataManager::loadOmniTransform(std::string filePath)
 
     QJsonObject rootObj = doc.object();
 
-    // 关键：只有识别到 "Transform" 关键字才继续
+    // Key: proceed only when the "Transform" keyword is found.
     if (!rootObj.contains("Transform")) {
         return false;
     }
 
     QJsonObject transformData = rootObj["Transform"].toObject();
 
-    // 遍历 OmniTransform (Key: Name, Value: 4x4 Array)
+    // Iterate OmniTransform (key: name, value: 4x4 array).
     for (auto it = transformData.begin(); it != transformData.end(); ++it) {
         QString name = it.key();
         QJsonArray matrixRows = it.value().toArray();
@@ -2411,13 +2411,13 @@ void DataManager::buildCache() {
     m_tableToolRowCache.clear();
     qDebug()<<"m_toolCache and  m_tableToolRowCache clear!";
     
-    // 缓存 Tool 指针
+    // Cache Tool pointers.
     for (Tool* tool : m_tools) {
         if (tool) m_toolCache.insert(QString::fromStdString(tool->getName()), tool);
         qDebug()<<QString::fromStdString(tool->getName());
     }
     
-    // 缓存 tool UI 行号
+    // Cache tool UI row indices.
     for (int i = 0; i < ui.tool_tw->rowCount(); ++i) {
         if (auto item = ui.tool_tw->item(i, 0)) {
             m_tableToolRowCache.insert(item->text(), i);

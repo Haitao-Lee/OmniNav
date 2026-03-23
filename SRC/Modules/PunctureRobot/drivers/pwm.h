@@ -1,4 +1,4 @@
-#ifndef __PWM_H
+﻿#ifndef __PWM_H
 #define __PWM_H
 
 #include <stdint.h>
@@ -15,39 +15,39 @@
 extern "C" {
 #endif
 	
-	// 初始化PWM
-	// SerialNumber: 设备序号
-	// Channel: 通道编号。0，PWM0. 1, PWM1 ...
-	// Prescaler: 预分频器。范围1~65535
-	// Precision: 脉冲精度。范围1~65535. PWM频率=72MHz/(Prescaler*Precision)
-	// Duty: 占空比。范围0~Precision。实际占空比=(Duty/Precision)*100%
-	// Phase: 波形相位。范围0~Precision-1。
-	// Polarity: 波形极性。范围0~1。
-	// 函数返回：0，正常；<0，异常
+	// Initialize PWM.
+	// SerialNumber: device serial number.
+	// Channel: channel index. 0 = PWM0, 1 = PWM1 ...
+	// Prescaler: prescaler, range 1~65535.
+	// Precision: pulse precision, range 1~65535. PWM frequency = 72 MHz/(Prescaler*Precision).
+	// Duty: duty cycle, range 0~Precision. Actual duty = (Duty/Precision)*100%.
+	// Phase: waveform phase, range 0~Precision-1.
+	// Polarity: waveform polarity, range 0~1.
+	// Return: 0 for success; <0 for error.
 	int WINAPI PWM_Init(int SerialNumber, int Channel, int Prescaler, int Precision, int Duty, int Phase, int Polarity);
 	
-	// PWM开始输出
-	// Channel: 通道编号。0，PWM0. 1, PWM1 ...
-	// RunTimeUs: 输出波形的时间，单位为微妙，启动波形输出之后，RunTimeOfUs微妙之后会停止波形输出，该参数为0，波形会一直输出，直到手动停止，利用该参数可以控制脉冲输出个数。
-	// 函数返回：0，正常；<0，异常
+	// Start PWM output.
+	// Channel: channel index. 0 = PWM0, 1 = PWM1 ...
+	// RunTimeUs: output duration in microseconds; after starting, output stops after RunTimeUs us. If 0, output runs until stopped manually; use this to control pulse count.
+	// Return: 0 for success; <0 for error.
 	int WINAPI PWM_Start(int SerialNumber, int Channel, int RunTimeUs);
 
-	// PWM停止输出
-	// Channel: 通道编号。0，PWM0. 1, PWM1 ...
-	// 函数返回：0，正常；<0，异常
+	// Stop PWM output.
+	// Channel: channel index. 0 = PWM0, 1 = PWM1 ...
+	// Return: 0 for success; <0 for error.
 	int WINAPI PWM_Stop(int SerialNumber, int Channel);
 
-	// PWM占空比动态调节。可以在PWM启动之后调用
-	// Channel: 通道编号。0，PWM0. 1, PWM1 ...
-	// Duty: 占空比。范围0~Precision。实际占空比=(Duty/Precision)*100%
-	// 函数返回：0，正常；<0，异常
+	// Adjust PWM duty cycle dynamically; can be called after PWM starts.
+	// Channel: channel index. 0 = PWM0, 1 = PWM1 ...
+	// Duty: duty cycle, range 0~Precision. Actual duty = (Duty/Precision)*100%.
+	// Return: 0 for success; <0 for error.
 	int WINAPI PWM_SetDuty(int SerialNumber, int Channel, int Duty);
 
-	// PWM频率动态调节。可以在PWM启动之后调用
-	// Channel: 通道编号。0，PWM0. 1, PWM1 ...
-	// Prescaler: 预分频器。范围1~65535
-	// Precision: 脉冲精度。范围1~65535
-	// 函数返回：0，正常；<0，异常
+	// Adjust PWM frequency dynamically; can be called after PWM starts.
+	// Channel: channel index. 0 = PWM0, 1 = PWM1 ...
+	// Prescaler: prescaler, range 1~65535.
+	// Precision: pulse precision, range 1~65535.
+	// Return: 0 for success; <0 for error.
 	int WINAPI PWM_SetFrequency(int SerialNumber, int Channel, int Prescaler, int Precision);
 
 #if defined(__cplusplus)
@@ -55,3 +55,5 @@ extern "C" {
 #endif
 
 #endif
+
+

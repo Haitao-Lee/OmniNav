@@ -1,4 +1,4 @@
-#include "GeometryUtils.h"
+﻿#include "GeometryUtils.h"
 #include <random>
 #include <algorithm>
 #include <numeric>
@@ -165,46 +165,46 @@ Eigen::Matrix4d GeometryUtils::computeRegistration(const Eigen::MatrixXd& source
 
     Eigen::Matrix4d resultMat = Eigen::Matrix4d::Identity();
 
-    // === 情况 A: 只有 1 个点 (平移对齐) ===
+    // === Case A: only 1 point (translation alignment) ===
     if (n == 1) {
-        // 直觉解：只算位移 T = Target - Source
+        // Intuitive solution: translation only, T = Target - Source.
         Eigen::Vector3d s = sourcePts.row(0);
         Eigen::Vector3d t = targetPts.row(0);
         Eigen::Vector3d translation = t - s;
         resultMat.block<3, 1>(0, 3) = translation;
     }
-    // === 情况 B: 只有 2 个点 (锚点对齐 + 轴对齐) ===
-    // 以第一个点为锚点 (Anchor)，针尖不动，甩动针尾 
+    // === Case B: only 2 points (anchor alignment + axis alignment) ===
+    // Use the first point as the anchor (needle tip fixed) and swing the tail. 
     else if (n == 2) {
-        // 1. 获取点
-        Eigen::Vector3d s1 = sourcePts.row(0); // 锚点 (针尖)
-        Eigen::Vector3d s2 = sourcePts.row(1); // 方向点 (针尾)
+        // 1. Get points.
+        Eigen::Vector3d s1 = sourcePts.row(0); // Anchor (needle tip).
+        Eigen::Vector3d s2 = sourcePts.row(1); // Direction point (needle tail).
         Eigen::Vector3d t1 = targetPts.row(0);
         Eigen::Vector3d t2 = targetPts.row(1);
 
-        // 2. 计算向量
+        // 2. Compute vectors.
         Eigen::Vector3d v_source = s2 - s1;
         Eigen::Vector3d v_target = t2 - t1;
 
-        // 3. 计算旋转 (将 Source向量 旋转到 Target向量)
+        // 3. Compute rotation (rotate Source vector to Target vector).
         v_source.normalize();
         v_target.normalize();
         
-        // FromTwoVectors 计算最小旋转，把 v_source 转到 v_target
+        // FromTwoVectors computes the minimal rotation from v_source to v_target.
         Eigen::Quaterniond q = Eigen::Quaterniond::FromTwoVectors(v_source, v_target);
         Eigen::Matrix3d R = q.toRotationMatrix();
 
-        // 4. 计算平移
-        // 逻辑：先旋转，旋转后 S1 可能会跑偏，我们需要把旋转后的 S1 移回 T1
+        // 4. Compute translation.
+        // Logic: rotate first; S1 may drift, so move the rotated S1 back to T1.
         // T = T1 - (R * S1)
         Eigen::Vector3d translation = t1 - (R * s1);
 
         resultMat.block<3, 3>(0, 0) = R;
         resultMat.block<3, 1>(0, 3) = translation;
     }
-    // === 情况 C: 3 个及以上点 (SVD 刚体配准) ===
+    // === Case C: 3 or more points (SVD rigid registration) ===
     else {
-        // ... (保持原本的 VTK/SVD 逻辑，这是数学最优解) ...
+        // ... (Keep the original VTK/SVD logic; this is the mathematically optimal solution.) ...
         vtkSmartPointer<vtkPoints> vtkSourcePts = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkPoints> vtkTargetPts = vtkSmartPointer<vtkPoints>::New();
         for (int i = 0; i < n; ++i) {
@@ -225,3 +225,4 @@ Eigen::Matrix4d GeometryUtils::computeRegistration(const Eigen::MatrixXd& source
 
     return resultMat;
 }
+

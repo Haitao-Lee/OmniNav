@@ -1,4 +1,4 @@
-#include <vtkAutoInit.h>
+﻿#include <vtkAutoInit.h>
 VTK_MODULE_INIT(vtkRenderingOpenGL2)
 VTK_MODULE_INIT(vtkInteractionStyle)
 VTK_MODULE_INIT(vtkRenderingFreeType)
@@ -43,7 +43,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &, const QString &
 
 int main(int argc, char *argv[])
 {
-    // ================== ① OpenGL backend（必须最先） ==================
+    // ================== ① OpenGL backend (must be first). ==================
     // QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
@@ -52,19 +52,19 @@ int main(int argc, char *argv[])
         Qt::HighDpiScaleFactorRoundingPolicy::PassThrough
     );
 
-    // ================== ② OpenGL SurfaceFormat（关键） ==================
+    // ================== ② OpenGL SurfaceFormat (critical). ==================
     QSurfaceFormat fmt = QVTKOpenGLNativeWidget::defaultFormat();
     fmt.setProfile(QSurfaceFormat::CoreProfile);
-    fmt.setVersion(3, 2);               // VTK 最稳
+    fmt.setVersion(3, 2);               // Most stable for VTK.
     fmt.setDepthBufferSize(24);
     fmt.setStencilBufferSize(8);
-    fmt.setSamples(0);                  // 先关 MSAA，排雷
+    fmt.setSamples(0);                  // Disable MSAA first to avoid pitfalls.
     QSurfaceFormat::setDefaultFormat(fmt);
 
     // ================== ③ QApplication ==================
     QApplication app(argc, argv);
 
-    // ================== ④ Qt / VTK 杂项 ==================
+    // ================== ④ Qt/VTK miscellaneous setup. ==================
     qInstallMessageHandler(myMessageOutput);
 
     vtkObject::GlobalWarningDisplayOff();
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     font.setPointSize(12);
     app.setFont(font);
 
-    // ================== ⑤ 主窗口 ==================
+    // ================== ⑤ Main window. ==================
     OmniNav on;
     on.showMaximized();
     on.update();
@@ -84,3 +84,4 @@ int main(int argc, char *argv[])
 
     return app.exec();
 }
+

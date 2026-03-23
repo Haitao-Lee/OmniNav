@@ -1,4 +1,4 @@
-#include "URController.h"
+﻿#include "URController.h"
 #include "NetworkUtility.h"
 #include "DataStream.hpp"
 #include "EasyBuffer.h"
@@ -77,7 +77,7 @@ namespace URControllerInner {
         double maxPosA = 0.5; // 50 mm/s^2
         double maxAngA = 0.5; // 0.5 rad/s^2
         double timeSlice = 0.01; // 100Hz
-        double pTerm = 1.0; // 比例放大系数
+        double pTerm = 1.0; // Proportional gain scale.
     };
 }
 
@@ -186,7 +186,7 @@ struct URController::impl {
         while (socket->bytesAvailable() > 0) {
             auto data = IOUtility::ReadPacket(*dataStream, buffer);
             auto packet = PacketT::newPacketFromRaw(data);
-            emit qThis->newPacket(packet); // 收到之后立刻应立刻包装进智能指针
+            emit qThis->newPacket(packet); // Wrap into a smart pointer immediately after receiving.
         }
     }
 
@@ -245,19 +245,19 @@ struct URController::impl {
 
     bool setupInput() {
         static std::vector<std::string> inputNameList = {
-                "input_bit_register_65", // target 是否表示为 pose 的形式
-                "input_int_register_25", // 控制模式 Stop = 0, Hard = 1, Soft = 2, SoftPosOnly = 3
-                "input_double_register_24", // 6 个参数表示 target
+                "input_bit_register_65", // Whether target is represented as a pose.
+                "input_int_register_25", // Control mode: Stop = 0, Hard = 1, Soft = 2, SoftPosOnly = 3.
+                "input_double_register_24", // Six parameters represent target.
                 "input_double_register_25",
                 "input_double_register_26",
                 "input_double_register_27",
                 "input_double_register_28",
                 "input_double_register_29",
-                "input_double_register_30", // 线速度上限
-                "input_double_register_31", // 角速度上限
-                "input_double_register_32", // 线加速度上限
-                "input_double_register_33", // 角加速度上限
-                "input_double_register_34", // Speed 系列函数单次占用时间
+                "input_double_register_30", // Linear speed limit.
+                "input_double_register_31", // Angular speed limit.
+                "input_double_register_32", // Linear acceleration limit.
+                "input_double_register_33", // Angular acceleration limit.
+                "input_double_register_34", // Per-call time slice for Speed functions.
                 "input_double_register_35", // P-term
         };
 
@@ -608,9 +608,9 @@ void URController::Stop() {
     if (!pImpl->checkThread()) return;
 
     auto cmdPacket = std::make_shared<URControllerInner::cmdPacket>();
-    cmdPacket->moveType = 0; // 停止运动
+    cmdPacket->moveType = 0; // Stop motion.
     pImpl->writeCmdPacket(std::move(cmdPacket));
-    QCoreApplication::processEvents(); // 手动调用事件循环，使得命令发出
+    QCoreApplication::processEvents(); // Manually process the event loop so the command is sent.
 }
 
 bool URController::WaitForMotionEnd(std::chrono::milliseconds timeout) {
@@ -637,3 +637,4 @@ RobotVector6 URController::GetJointPos() {
     std::shared_lock lock(pImpl->rwMu);
     return pImpl->lastStatus->actual_q;
 }
+

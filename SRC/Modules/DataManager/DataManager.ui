@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>DataManagerClass</class>
  <widget class="QMainWindow" name="DataManagerClass">
@@ -529,7 +529,7 @@ border:none;</string>
     gridline-color: #6c6c6c;  
 }
 
-/* 表头（第一行）的样式 */
+/* Header row (first row) styling. */
 QHeaderView::section {
     background-color: rgb(77,77,115);
     color: #FFFFFF;
@@ -538,7 +538,7 @@ QHeaderView::section {
     border: 1px solid #6c6c6c;
 }
 
-/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+/* Top-left corner square styling (recommended; otherwise it is white). */
 QTableCornerButton::section {
     background-color: #404040;
     border: 1px solid #6c6c6c;
@@ -770,7 +770,7 @@ border-radius: 8px;</string>
     gridline-color: #6c6c6c;  
 }
 
-/* 表头（第一行）的样式 */
+/* Header row (first row) styling. */
 QHeaderView::section {
     background-color: rgb(77,77,115);
     color: #FFFFFF;
@@ -779,7 +779,7 @@ QHeaderView::section {
     border: 1px solid #6c6c6c;
 }
 
-/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+/* Top-left corner square styling (recommended; otherwise it is white). */
 QTableCornerButton::section {
     background-color: #404040;
     border: 1px solid #6c6c6c;
@@ -1015,7 +1015,7 @@ border-radius: 8px;</string>
     gridline-color: #6c6c6c;  
 }
 
-/* 表头（第一行）的样式 */
+/* Header row (first row) styling. */
 QHeaderView::section {
     background-color: rgb(77,77,115);
     color: #FFFFFF;
@@ -1024,7 +1024,7 @@ QHeaderView::section {
     border: 1px solid #6c6c6c;
 }
 
-/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+/* Top-left corner square styling (recommended; otherwise it is white). */
 QTableCornerButton::section {
     background-color: #404040;
     border: 1px solid #6c6c6c;
@@ -1247,7 +1247,7 @@ border-radius: 8px;</string>
     gridline-color: #6c6c6c;  
 }
 
-/* 表头（第一行）的样式 */
+/* Header row (first row) styling. */
 QHeaderView::section {
     background-color: rgb(77,77,115);
     color: #FFFFFF;
@@ -1256,7 +1256,7 @@ QHeaderView::section {
     border: 1px solid #6c6c6c;
 }
 
-/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+/* Top-left corner square styling (recommended; otherwise it is white). */
 QTableCornerButton::section {
     background-color: #404040;
     border: 1px solid #6c6c6c;
@@ -1501,7 +1501,7 @@ color: rgb(255,255,255);</string>
     gridline-color: #6c6c6c;  
 }
 
-/* 表头（第一行）的样式 */
+/* Header row (first row) styling. */
 QHeaderView::section {
     background-color: rgb(77,77,115);
     color: #FFFFFF;
@@ -1510,7 +1510,7 @@ QHeaderView::section {
     border: 1px solid #6c6c6c;
 }
 
-/* 左上角那个小方块的样式（建议加上，否则是白色的） */
+/* Top-left corner square styling (recommended; otherwise it is white). */
 QTableCornerButton::section {
     background-color: #404040;
     border: 1px solid #6c6c6c;
@@ -2045,3 +2045,4 @@ background-color: rgb(50, 50, 50);</string>
  </resources>
  <connections/>
 </ui>
+

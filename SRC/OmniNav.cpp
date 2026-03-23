@@ -1,4 +1,4 @@
-#include "OmniNav.h"
+﻿#include "OmniNav.h"
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QJsonDocument>
@@ -798,13 +798,13 @@ void OmniNav::onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& too
     const std::vector<Landmark*>& landmarks = dataManager->getLandmarks();
 
     // -------------------------------------------------------------
-    // Part 1: 更新 Tool Table (UI 显示部分，保持不变)
+    // Part 1: Update the tool table (UI display only; keep unchanged).
     // -------------------------------------------------------------
     for (const auto& data : tools) {
         if (tableToolRowCache.contains(data.name)) {
             int row = tableToolRowCache[data.name];
 
-            // 1. 更新 Handle
+            // 1. Update the handle.
             QTableWidgetItem* handleItem = table->item(row, 8);
             if (!handleItem) { 
                 handleItem = new QTableWidgetItem();
@@ -814,7 +814,7 @@ void OmniNav::onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& too
             QString newHandle = QString::number(data.portHandle);
             if (handleItem->text() != newHandle) handleItem->setText(newHandle);
 
-            // 2. 更新 RMSE
+            // 2. Update the RMSE.
             QTableWidgetItem* rmseItem = table->item(row, 9); 
             if (!rmseItem) {
                 rmseItem = new QTableWidgetItem();
@@ -827,7 +827,7 @@ void OmniNav::onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& too
                 rmseItem->setForeground(data.error > 0.5 ? Qt::red : Qt::white);
             }
 
-            // 3. 更新矩阵显示 (Tooltip)
+            // 3. Update the matrix display (tooltip).
             QTableWidgetItem* transItem = table->item(row, 7);
             if (!transItem) {
                 transItem = new QTableWidgetItem();
@@ -835,14 +835,14 @@ void OmniNav::onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& too
                 table->setItem(row, 7, transItem);
             }
 
-            // 优先使用 toolCache 中校准后的矩阵 (FinalMatrix)
+            // Prefer the calibrated matrix from toolCache (FinalMatrix).
             double displayMatrix[4][4];
-            // 默认用原始数据填充
+            // Default to the raw data.
             for(int i=0; i<4; i++) 
                 for(int j=0; j<4; j++) 
                     displayMatrix[i][j] = data.matrix(i,j);
 
-            // 如果 Cache 里有（通常都有），用处理过（Flip/Pivot）的矩阵覆盖
+            // If the cache has data (usually does), override with the processed (flip/pivot) matrix.
             if (toolCache.contains(data.name)) {
                 Tool* tool = toolCache[data.name];
                 vtkMatrix4x4* finalMat = tool->getFinalMatrix(); 
@@ -871,7 +871,7 @@ void OmniNav::onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& too
                 transItem->setToolTip(fullMatStr);
             }
 
-            // 4. 更新在线状态颜色
+            // 4. Update the online status color.
             QTableWidgetItem* nameItem = table->item(row, 0);
             if (nameItem) {
                  QBrush targetColor = data.isVisible ? QBrush(Qt::green) : QBrush(Qt::red);
@@ -883,8 +883,8 @@ void OmniNav::onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& too
     }
 
     // // -------------------------------------------------------------
-    // // Part 2: 更新 Mesh Transform (保持 SetUserMatrix)
-    // // Mesh 通常比较大，直接设置 Matrix 性能更好
+    // // Part 2: Update the mesh transform (keep SetUserMatrix).
+    // // Meshes are typically large; setting the matrix directly is faster.
     // // -------------------------------------------------------------
     // for (int i = 0; i < meshTable->rowCount(); ++i) {
     //     if (i >= meshes.size()) break;
@@ -915,7 +915,7 @@ void OmniNav::onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& too
     // }
 
     // // -------------------------------------------------------------
-    // // Part 3: 更新 Landmark Coordinates (直接修改数值，Actor 会移动)
+    // // Part 3: Update landmark coordinates (directly modify values; the actor will move).
     // // -------------------------------------------------------------
     // for (int i = 0; i < landmarkTable->rowCount(); ++i) {
     //     if (i >= landmarks.size()) break;
@@ -929,33 +929,33 @@ void OmniNav::onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& too
 
     //     QString selectedToolName = cbb->currentText();
         
-    //     // 只有当绑定了 Tool 时才进行坐标更新
+    //     // Only update coordinates when a tool is bound.
     //     if (selectedToolName != "None") {
     //         if (toolCache.contains(selectedToolName)) {
     //             Tool* tool = toolCache[selectedToolName];
     //             vtkMatrix4x4* toolMat = tool->getFinalMatrix();
                 
     //             if (toolMat) {
-    //                 // [关键修改] 
-    //                 // 假设 Landmark 代表 Tool 的尖端，即局部坐标 (0,0,0)
-    //                 // 如果 Landmark 有固定的局部偏移，这里应该用 lm->getLocalCoordinates() 
-    //                 // 但通常逻辑是：由 Tool 驱动的点，其世界坐标 = Tool矩阵的平移部分
+    //                 // [Key change]. 
+    //                 // Assume the landmark represents the tool tip at local coordinates (0, 0, 0).
+    //                 // If the landmark has a fixed local offset, use lm->getLocalCoordinates(). 
+    //                 // Typically, a tool-driven point uses the tool matrix translation as its world coordinates.
                     
     //                 double x = toolMat->GetElement(0, 3);
     //                 double y = toolMat->GetElement(1, 3);
     //                 double z = toolMat->GetElement(2, 3);
                     
-    //                 // 1. 设置 Actor 变换为 Identity (因为我们直接修改了顶点坐标，不需要再叠加矩阵)
+    //                 // 1. Set the actor transform to identity (we directly modify vertex coordinates, so no extra matrix is needed).
     //                 vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
     //                 if (lm->getActor()) {
     //                     lm->getActor()->SetUserMatrix(identity);
     //                 }
 
-    //                 // 2. 直接修改 Landmark 的坐标数据 -> Actor 会随之移动
+    //                 // 2. Directly update the landmark coordinates; the actor will move accordingly.
     //                 double newCoords[3] = {x, y, z};
     //                 lm->setCoordinates(newCoords); 
 
-    //                 // 3. 同步更新表格 UI (需要 blockSignals 防止循环触发 edit)
+    //                 // 3. Sync the UI table (use blockSignals to prevent recursive edits).
     //                 QTableWidgetItem* coordItem = landmarkTable->item(i, 1);
     //                 if (coordItem) {
     //                     QString newCoordStr = QString("%1, %2, %3")
@@ -964,24 +964,24 @@ void OmniNav::onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& too
     //                         .arg(z, 0, 'f', 2);
                         
     //                     if (coordItem->text() != newCoordStr) {
-    //                         landmarkTable->blockSignals(true); // 暂停信号
+    //                         landmarkTable->blockSignals(true); // Block signals.
     //                         coordItem->setText(newCoordStr);
-    //                         landmarkTable->blockSignals(false); // 恢复信号
+    //                         landmarkTable->blockSignals(false); // Unblock signals.
     //                     }
     //                 }
     //             }
     //         }
     //     } 
     //     else {
-    //         // [新增] 如果 Name 是 None，设置为 Identity (重置)
-    //         // 这里的语义通常是：如果不跟随 Tool，保持在该位置，或者重置回原点？
-    //         // 既然代码要求 Identity，我们就确保 Actor 没有残留的 UserMatrix
+    //         // [New] If the name is None, set identity (reset).
+    //         // Semantics: if not following a tool, keep the current position or reset to the origin.
+    //         // Since the code requires identity, ensure the actor has no leftover UserMatrix.
     //         vtkSmartPointer<vtkMatrix4x4> identity = vtkSmartPointer<vtkMatrix4x4>::New();
     //         if (lm->getActor()) {
     //             lm->getActor()->SetUserMatrix(identity);
     //         }
-    //         // 注意：这里没有重置 setCoordinates，意味着它会停留在最后一次跟随的位置
-    //         // 如果你想让它回原点 (0,0,0)，可以在这里 lm->setCoordinates({0,0,0})
+    //         // Note: setCoordinates is not reset here, so it remains at the last followed position.
+    //         // If you want it to return to the origin (0, 0, 0), call lm->setCoordinates({0, 0, 0}) here.
     //     }
     // }
 
@@ -1221,4 +1221,5 @@ void OmniNav::onChangeVolumeVisualState(bool state)
 
     updateViews();
 }
+
 

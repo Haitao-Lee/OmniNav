@@ -1,4 +1,4 @@
-#ifndef SOPHIAR_QTUTILITY_H
+﻿#ifndef SOPHIAR_QTUTILITY_H
 #define SOPHIAR_QTUTILITY_H
 
 #include <QObject>
@@ -11,8 +11,8 @@ using namespace std::chrono_literals;
 
 namespace QtUtility {
 
-    // 消费者调用 WaitForResult 等待结果
-    // 生产者调用 Notify 通知结果
+    // The consumer calls WaitForResult to wait for the result.
+    // The producer calls Notify to deliver the result.
     class ResultWaiter : public QObject {
     Q_OBJECT
     public:
@@ -37,3 +37,4 @@ namespace QtUtility {
 
 
 #endif //SOPHIAR_QTUTILITY_H
+

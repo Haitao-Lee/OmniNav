@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Modules/BaseModule/BaseModule.h"
 #include "ui_PunctureRobot.h"
@@ -23,12 +23,12 @@ enum class NeedleState {
 
 // Main State Machine
 enum PuncturePhaseEnum { 
-    PHASE_IDLE = 0,
+    PHASE_IDLE = 0, 
     PHASE_MOVING_TO_APPROACH = 1, 
     PHASE_MOVING_TO_ENTRY = 2,    
-    PHASE_READY = 3,              // [修复 C2065] 补上了这个状态
-    PHASE_PUNCTURING = 4,         
-    PHASE_RETRACTING = 5          
+    PHASE_READY = 3,              // [Fix C2065] Added this missing state.
+    PHASE_RETURNING_NEEDLE = 4,  // [New] Auto needle-retraction phase.
+    PHASE_RETURNING_ROBOT = 5    // [New] Robot retreat phase.       
 };
 
 class PunctureRobot : public BaseModule
@@ -83,9 +83,8 @@ public slots:
     void on_connectEndeffector_btn_clicked();
     void on_URAction_btn_clicked(); 
     void on_calibrate_btn_clicked(); 
-    
     void on_EFAction_btn_clicked();      
-    void on_RetractAction_btn_clicked(); 
+    void on_ReturnAction_btn_clicked(); 
 
     void on_btnFreeDrive_toggled(bool checked);
     void onJogBtnPressed();
@@ -144,12 +143,17 @@ private:
     Eigen::Matrix4d m_matCurrRobotBasePose = Eigen::Matrix4d::Identity();
     
     QList<Eigen::Vector3d> m_plannedPathLocal; 
-
-    // Constants
-    const double PARAM_APPROACH_DISTANCE = 0.300; // 100mm = 0.1m
-    const double PARAM_MOTION_TOLERANCE = 0.002;  // 2mm tolerance
-    const double PARAM_NEEDLE_VEL_INSERT = 15.0;   
-    const double PARAM_NEEDLE_VEL_RETRACT = 5.0;
+ 
+    // Constants 
+    // ur:m
+    double PARAM_APPROACH_DISTANCE = 0.300; // 100mm = 0.1m
+    double PARAM_MOTION_TOLERANCE = 0.002;  // 2mm tolerance    
+    double SAFETY_MARGIN_M = 0.055; // Robot will stop 5.5mm before touching the skin.
+    double PARAM_NEEDLE_VEL_INSERT = 15.0;   
+    double PARAM_NEEDLE_VEL_RETRACT = 5.0;
+    Eigen::Vector3d m_needleZeroPosW_mm;
+    Eigen::Vector3d m_needleZeroDirW;
+    bool m_hasRecordedZeroPos = false;
 
     // Helpers
     void loadConfig();
@@ -163,8 +167,8 @@ private:
     void performHandEyeCalibration(const Eigen::Matrix4d& T_World_Needle_Avg, 
                                    const Eigen::Matrix4d& T_World_Probe_Avg);
 
-    // [修复 C2039] 必须声明这些函数，因为 .cpp 文件里有它们的空实现
-    // 虽然逻辑上不怎么用了，但为了编译通过必须保留声明
+    // [Fix C2039] These functions must be declared because .cpp has empty implementations.
+    // They are mostly unused logically, but must remain for compilation.
     bool getLogicTools(TrackedTool& tPat, TrackedTool& tRob);
     bool syncRawToLogicTools(const QVector<TrackedTool>& rawTools, TrackedTool& logicPat, TrackedTool& logicRob);
     void solveAndEmitKinematics(const Eigen::Matrix4d& T_W_Rob_M, const Eigen::Vector3d& targetPosW_M, const Eigen::Vector3d& pEntryW_M, const Eigen::Vector3d& pTargetW_M);

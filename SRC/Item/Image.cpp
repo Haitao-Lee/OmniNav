@@ -1,4 +1,4 @@
-#include "Image.h"
+﻿#include "Image.h"
 #include <QFileInfo>
 #include <QDir>
 #include <QCoreApplication>
@@ -52,7 +52,7 @@ Image::~Image()
 //     vtkSmartPointer<vtkImageReader2> reader = nullptr;
 //     vtkSmartPointer<vtkDICOMImageReader> dcmReader = nullptr;
 
-//     // 1. 初始化 Reader (保持原样)
+//     // 1. Initialize the reader (keep as-is).
 //     if (fileInfo.isDir())
 //     {
 //         QDir dir(qPath);
@@ -95,10 +95,10 @@ Image::~Image()
 //     vtkSmartPointer<vtkImageData> tempImage = reader->GetOutput();
 
 //     double range[2];
-//     // 获取图像数组中的标量最大值和最小值
+//     // Get the min/max scalar values from the image array.
 //     tempImage->GetScalarRange(range);
 
-//     // 输出到调试控制台
+//     // Print to the debug console.
 //     qDebug() << "------------------------------------------";
 //     qDebug() << "m_imageData Scalar Range:";
 //     qDebug() << "Min Value:" << range[0];
@@ -113,7 +113,7 @@ Image::~Image()
 //         if (pName) m_patientName = std::string(pName);
 //     }
 
-//     // --- 2. 坐标规范化逻辑 (Slicer RAS 一致性) ---
+//     // --- 2. Coordinate normalization logic (Slicer RAS consistency) ---
 
 //     tempImage->GetOrigin(m_origin);
 //     tempImage->GetSpacing(m_spacing);
@@ -127,9 +127,9 @@ Image::~Image()
 //         double newOriginY = m_origin[1];
 //         double newOriginZ = m_origin[2];
 
-//         // Slicer 使用 RAS，DICOM 使用 LPS。
-//         // 3. 物理翻转像素
-//         // 翻转 X 轴 (L->R)
+//         // Slicer uses RAS; DICOM uses LPS.
+//         // 3. Physically flip pixels.
+//         // Flip the X axis (L->R).
 //         vtkSmartPointer<vtkImageFlip> flipX = vtkSmartPointer<vtkImageFlip>::New();
 //         flipX->SetInputData(tempImage);
 //         flipX->SetFilteredAxis(0); 
@@ -137,7 +137,7 @@ Image::~Image()
 //         tempImage = flipX->GetOutput();
 //         newOriginX = m_origin[0] + (m_dimensions[0] - 1) * m_spacing[0];
 
-//         // 翻转 Y 轴 (P->A) 
+//         // Flip the Y axis (P->A). 
 //         // vtkSmartPointer<vtkImageFlip> flipY = vtkSmartPointer<vtkImageFlip>::New();
 //         // flipY->SetInputData(tempImage);
 //         // flipY->SetFilteredAxis(1); 
@@ -145,7 +145,7 @@ Image::~Image()
 //         // tempImage = flipY->GetOutput();
 //         // newOriginY = m_origin[1] + (m_dimensions[1] - 1) * m_spacing[1];
 
-//         // 翻转 Z 轴 
+//         // Flip the Z axis. 
 //         vtkSmartPointer<vtkImageFlip> flipZ = vtkSmartPointer<vtkImageFlip>::New();
 //         flipZ->SetInputData(tempImage);
 //         flipZ->SetFilteredAxis(2); 
@@ -153,9 +153,9 @@ Image::~Image()
 //         tempImage = flipZ->GetOutput();
 //         newOriginZ = m_origin[2] + (m_dimensions[2] - 1) * m_spacing[2];
 
-//         // 4. 将修正后的原点应用回图像
-//         // 注意：因为 SetDirectionMatrix 在旧版不可用，
-//         // 我们必须确保通过 Origin 和物理像素翻转来维持一致性。
+//         // 4. Apply the corrected origin back to the image.
+//         // Note: SetDirectionMatrix is unavailable in older versions,
+//         // so we must preserve consistency via Origin and physical pixel flips.
 //         m_origin[0] = newOriginX;
 //         m_origin[1] = newOriginY;
 //         m_origin[2] = newOriginZ;
@@ -211,7 +211,7 @@ bool Image::loadFile()
                 m_patientAge = "Unknown";
             }
 
-            // 手动桥接 ITK -> VTK (替代 ImageToVTKImageFilter)
+            // Manually bridge ITK to VTK (replaces ImageToVTKImageFilter).
             ITKImageType::Pointer itkImage = itkReader->GetOutput();
             ITKImageType::RegionType region = itkImage->GetLargestPossibleRegion();
             ITKImageType::SizeType size = region.GetSize();
@@ -259,7 +259,7 @@ bool Image::loadFile()
 
     if (!tempImage || tempImage->GetNumberOfPoints() == 0) return false;
 
-    // --- 输出调试信息 (验证数值是否读到) ---
+    // --- Debug output (verify values were read) ---
     double range[2];
     tempImage->GetScalarRange(range);
     qDebug() << "------------------------------------------";
@@ -267,7 +267,7 @@ bool Image::loadFile()
     qDebug() << "Data Type:" << tempImage->GetScalarTypeAsString();
     qDebug() << "------------------------------------------";
 
-    // --- 2. 坐标规范化逻辑 (Slicer RAS 一致性) ---
+    // --- 2. Coordinate normalization logic (Slicer RAS consistency) ---
     tempImage->GetOrigin(m_origin);
     tempImage->GetSpacing(m_spacing);
     tempImage->GetDimensions(m_dimensions);
@@ -275,7 +275,7 @@ bool Image::loadFile()
 
     if (m_orientation == "RAS")
     {
-        // 获取原始参数
+        // Get the original parameters.
         int dims[3];
         double spacing[3];
         double origin[3];
@@ -284,43 +284,43 @@ bool Image::loadFile()
         tempImage->GetOrigin(origin);
 
         // ==========================================================
-        // 第一步：数据内容翻转 (相当于像素矩阵旋转 180)
+        // Step 1: Flip the data content (equivalent to a 180-degree pixel matrix rotation).
         // ==========================================================
         
-        // 翻转 X
+        // Flip X.
         vtkSmartPointer<vtkImageFlip> flipX = vtkSmartPointer<vtkImageFlip>::New();
         flipX->SetInputData(tempImage);
         flipX->SetFilteredAxis(0);
         flipX->Update();
         vtkSmartPointer<vtkImageData> step1 = flipX->GetOutput();
 
-        // 翻转 Y
+        // Flip Y.
         vtkSmartPointer<vtkImageFlip> flipY = vtkSmartPointer<vtkImageFlip>::New();
         flipY->SetInputData(step1);
         flipY->SetFilteredAxis(1);
         flipY->Update();
         
-        // 获取翻转后的图像数据
+        // Get the flipped image data.
         vtkSmartPointer<vtkImageData> finalImage = flipY->GetOutput();
 
         // ==========================================================
-        // 第二步：计算新原点 (关键步骤)
-        // 只有这样设置，图像才是真正的 "绕世界原点 (0,0,0) 旋转"
+        // Step 2: Compute the new origin (key step).
+        // Only with this setting does the image truly rotate around the world origin (0, 0, 0).
         // ==========================================================
         
-        // 计算旧图像的 "最大角" 坐标 (Top-Right-Back)
+        // Compute the old image "max corner" coordinates (Top-Right-Back).
         double maxBounds[3];
         maxBounds[0] = origin[0] + (dims[0] - 1) * spacing[0];
         maxBounds[1] = origin[1] + (dims[1] - 1) * spacing[1];
-        maxBounds[2] = origin[2]; // Z轴如果不动，保持原样
+        maxBounds[2] = origin[2]; // If Z does not move, keep it unchanged.
 
-        // 新的原点 = 旧最大角的相反数 (因为 x' = -x, y' = -y)
+        // New origin = negative of the old max corner (because x' = -x, y' = -y).
         double newOrigin[3];
         newOrigin[0] = -maxBounds[0];
         newOrigin[1] = -maxBounds[1];
-        newOrigin[2] = origin[2]; // Z轴通常旋转180度后高度不变，除非你是绕空间球心转
+        newOrigin[2] = origin[2]; // Z typically stays unchanged after a 180-degree rotation unless you rotate around the spatial center.
 
-        // 应用新原点到图像数据
+        // Apply the new origin to the image data.
         finalImage->SetOrigin(newOrigin);
         tempImage = finalImage;
     }
@@ -400,7 +400,7 @@ void Image::createActors(vtkSmartPointer<vtkLookupTable> lut2d,
     // volume->SetMapper(volumeMapper);
     // volume->SetProperty(m_volumeProperty);
 
-    // 视电脑而定，开发者笔记本没显卡，显示有bug。可换用vtkSmartVolumeMapper等
+    // Depends on the machine; the developer laptop has no GPU and shows artifacts. Consider vtkSmartVolumeMapper.
     vtkSmartPointer<vtkFixedPointVolumeRayCastMapper> volumeMapper = vtkSmartPointer<vtkFixedPointVolumeRayCastMapper>::New();
     volumeMapper->SetInputData(m_imageData);
 
@@ -464,19 +464,19 @@ void Image::adjustActors(double current_center[3])
 void Image::getOrthogonalMatrix(int direction, vtkMatrix4x4* matrix)
 {
     matrix->Identity();
-    if (direction == 0) // Axial (从下往上看)
+    if (direction == 0) // Axial (viewed from inferior to superior).
     {
         matrix->SetElement(0, 0, 1);  matrix->SetElement(0, 1, 0);  matrix->SetElement(0, 2, 0);
         matrix->SetElement(1, 0, 0);  matrix->SetElement(1, 1, -1); matrix->SetElement(1, 2, 0);
         matrix->SetElement(2, 0, 0);  matrix->SetElement(2, 1, 0);  matrix->SetElement(2, 2, -1);
     }
-    else if (direction == 1) // Coronal (从正面看)
+    else if (direction == 1) // Coronal (viewed from the front).
     {
         matrix->SetElement(0, 0, -1);  matrix->SetElement(0, 1, 0);  matrix->SetElement(0, 2, 0);
         matrix->SetElement(1, 0, 0);  matrix->SetElement(1, 1, 0);  matrix->SetElement(1, 2, 1);
         matrix->SetElement(2, 0, 0);  matrix->SetElement(2, 1, 1);  matrix->SetElement(2, 2, 0);
     }
-    else if (direction == 2) // Sagittal (从侧面看)
+    else if (direction == 2) // Sagittal (viewed from the side).
     {
         matrix->SetElement(0, 0, 0);  matrix->SetElement(0, 1, 0);  matrix->SetElement(0, 2, 1);
         matrix->SetElement(1, 0, -1);  matrix->SetElement(1, 1, 0);  matrix->SetElement(1, 2, 0);

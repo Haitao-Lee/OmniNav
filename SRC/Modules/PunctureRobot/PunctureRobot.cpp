@@ -1,4 +1,4 @@
-#include "PunctureRobot.h"
+﻿#include "PunctureRobot.h"
 #include "RobotWorker.h"
 #include "OpticalNavigation.h"
 #include <QMessageBox>
@@ -23,6 +23,12 @@ namespace {
     const QString connectingStyle = "QPushButton { background-color: rgba(241, 196, 15, 200); border-style: outset; border-width: 1px; border-radius: 15px; border-color: rgba(255, 255, 255, 150); color: white; padding: 6px; }";
     const QString labelStyle = "QLabel{ background-color:rgba(77,77,115,136); border-style:outset; border-width:1px; border-radius:15px; border-color:rgba(255,255,255,30); color:rgba(255,255,255,255); padding:6px; }";
     const QString darkComboBoxStyle = "QComboBox { background-color: rgba(45, 45, 48, 220); border: 1px solid rgba(255, 255, 255, 30); border-radius: 15px; padding: 6px; color: white; }";
+    const QString darkSpinBoxStyle = 
+        "QAbstractSpinBox { background-color: rgba(45, 45, 48, 220); border: 1px solid rgba(255, 255, 255, 30); border-radius: 10px; padding: 4px 10px; color: white; }"
+        "QAbstractSpinBox::up-button { width: 20px; border-left: 1px solid rgba(255, 255, 255, 30); border-top-right-radius: 10px; background-color: rgba(77,77,115,50); }"
+        "QAbstractSpinBox::up-button:hover { background-color: rgba(200,200,200,100); }"
+        "QAbstractSpinBox::down-button { width: 20px; border-left: 1px solid rgba(255, 255, 255, 30); border-bottom-right-radius: 10px; background-color: rgba(77,77,115,50); }"
+        "QAbstractSpinBox::down-button:hover { background-color: rgba(200,200,200,100); }";
 }
 
 PunctureRobot::PunctureRobot(QWidget* parent) : BaseModule(parent) {
@@ -49,10 +55,13 @@ void PunctureRobot::loadConfig() {
     QString path = QCoreApplication::applicationDirPath() + "/PunctureRobot_config.json";
     QFile file(path);
     m_matFlangeToTCP = Eigen::Matrix4d::Identity();
+    
     if (file.open(QIODevice::ReadOnly)) {
         QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
         if (doc.isObject()) {
             m_config = doc.object();
+            
+            // 1. Parse the flange matrix.
             if (m_config.contains("flange2endeffector")) {
                 QStringList list = m_config["flange2endeffector"].toString().split(",");
                 if (list.size() == 16) {
@@ -61,9 +70,36 @@ void PunctureRobot::loadConfig() {
                         m_matFlangeToTCP(r, c) = list[idx++].toDouble();
                 }
             }
+
+            // 2. Parse motion and safety parameters (input in mm, store internally as m).
+            if (m_config.contains("ApproachDistance_mm")) {
+                // Read 300.0; divide by 1000 to get 0.3 m.
+                PARAM_APPROACH_DISTANCE = m_config["ApproachDistance_mm"].toDouble() / 1000.0;
+            }
+            if (m_config.contains("MotionTolerance_mm")) {
+                PARAM_MOTION_TOLERANCE = m_config["MotionTolerance_mm"].toDouble() / 1000.0;
+            }
+            if (m_config.contains("NeedleVelInsert_mm_s")) {
+                // Speed is already in mm/s; no conversion needed.
+                PARAM_NEEDLE_VEL_INSERT = m_config["NeedleVelInsert_mm_s"].toDouble();
+            }
+            if (m_config.contains("NeedleVelRetract_mm_s")) {
+                PARAM_NEEDLE_VEL_RETRACT = m_config["NeedleVelRetract_mm_s"].toDouble();
+            }
+            if (m_config.contains("SafetyMargin_mm")) {
+                // Read 5.5; divide by 1000 to get 0.0055 m.
+                SAFETY_MARGIN_M = m_config["SafetyMargin_mm"].toDouble() / 1000.0;
+            }
         }
         file.close();
+    } else {
+        qDebug() << "Warning: Cannot open config file. Using default parameters.";
     }
+    if (ui.app_sb) ui.app_sb->setValue(PARAM_APPROACH_DISTANCE * 1000.0);
+    if (ui.tol_sb) ui.tol_sb->setValue(PARAM_MOTION_TOLERANCE * 1000.0);
+    if (ui.vel1_sb) ui.vel1_sb->setValue(PARAM_NEEDLE_VEL_INSERT);
+    if (ui.vel2_sb) ui.vel2_sb->setValue(PARAM_NEEDLE_VEL_RETRACT);
+    if (ui.saf_sb) ui.saf_sb->setValue(SAFETY_MARGIN_M * 1000.0);
 }
 
 void PunctureRobot::init() {
@@ -124,6 +160,7 @@ void PunctureRobot::initButton() {
     applyTheme(ui.calibrate_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.URAction_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.EFAction_btn, textBaseStyle, pressedGreen, true);
+    applyTheme(ui.ReturnAction_btn, textBaseStyle, pressedGreen, true);
     
     applyTheme(ui.urXPlus_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.urXMinus_btn, textBaseStyle, pressedGreen, true);
@@ -145,6 +182,10 @@ void PunctureRobot::initButton() {
     
     auto setupLabel = [](QLabel* lbl) { if(lbl) { lbl->setStyleSheet(labelStyle); lbl->setAlignment(Qt::AlignCenter); }};
     setupLabel(ui.probeTool_lb); setupLabel(ui.efToolPrepare_lb); setupLabel(ui.baseTool_lb); setupLabel(ui.patientTool_lb); setupLabel(ui.efTool_lb); setupLabel(ui.trajPointset_lb);
+    setupLabel(ui.app_lb); setupLabel(ui.tol_lb); setupLabel(ui.vel1_lb); setupLabel(ui.vel2_lb); setupLabel(ui.efTool_lb); setupLabel(ui.saf_lb);
+    
+    auto setupSpinBox = [](QAbstractSpinBox* sb) { if(sb) { sb->setStyleSheet(darkSpinBoxStyle); sb->setAlignment(Qt::AlignCenter); }};
+    setupSpinBox(ui.app_sb); setupSpinBox(ui.tol_sb); setupSpinBox(ui.vel1_sb); setupSpinBox(ui.vel2_sb); setupSpinBox(ui.saf_sb);
 }
 
 void PunctureRobot::applyTheme(QPushButton* btn, const QString& baseStyle, const QString& pressedStyle, bool extraBorders) {
@@ -170,6 +211,35 @@ void PunctureRobot::createActions() {
     connect(ui.efForward_btn, &QPushButton::released, this, [=](){ if(isConnectedEndEffector) emit reqManualStepper(0.0); });
     connect(ui.efBackward_btn, &QPushButton::pressed, this, [=](){ if(isConnectedEndEffector) emit reqManualStepper(-MANUAL_SPEED); });
     connect(ui.efBackward_btn, &QPushButton::released, this, [=](){ if(isConnectedEndEffector) emit reqManualStepper(0.0); });
+    if (ui.app_sb) {
+        connect(ui.app_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double val){
+            PARAM_APPROACH_DISTANCE = val / 1000.0; // UI(mm) -> Backend(m)
+        });
+    }
+    
+    if (ui.tol_sb) {
+        connect(ui.tol_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double val){
+            PARAM_MOTION_TOLERANCE = val / 1000.0;  // UI(mm) -> Backend(m)
+        });
+    }
+    
+    if (ui.vel1_sb) {
+        connect(ui.vel1_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double val){
+            PARAM_NEEDLE_VEL_INSERT = val;          // mm/s unchanged.
+        });
+    }
+    
+    if (ui.vel2_sb) {
+        connect(ui.vel2_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double val){
+            PARAM_NEEDLE_VEL_RETRACT = val;         // mm/s unchanged.
+        });
+    }
+    
+    if (ui.saf_sb) {
+        connect(ui.saf_sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double val){
+            SAFETY_MARGIN_M = val / 1000.0;         // UI(mm) -> Backend(m)
+        });
+    }
 }
 
 // ---------------------------------------------------------
@@ -249,7 +319,7 @@ void PunctureRobot::performHandEyeCalibration(const Eigen::Matrix4d& T_World_Nee
         if (dirStr == "Z+") return R.col(2);
         if (dirStr == "Z-") return -R.col(2);
         return R.col(2); // Fallback
-    };
+    }; 
 
     // 1. Extract physical vectors in World Frame
     // Probe is aligned with Flange X
@@ -303,13 +373,11 @@ void PunctureRobot::on_URAction_btn_clicked() {
         return;
     }
 
+    m_hasRecordedZeroPos = false;
+
     // [CONFIG] Needle Offset Vector (in Flange Frame)
     // Extracted from config: (0, 0.1875, 0.1475)
     Eigen::Vector3d vOffset_Flange = m_matFlangeToTCP.block<3,1>(0,3);
-
-    // [SAFETY CONFIG] Distance above entry point to stop (e.g. 5mm)
-    // Robot will stop 5mm before touching the skin.
-    const double SAFETY_MARGIN_M = 0.06; 
 
     // 1. Get NDI Points (mm)
     QString efToolName = ui.efTool_cbb->currentText();
@@ -442,7 +510,14 @@ void PunctureRobot::onRobotPoseUpdated(double x, double y, double z, double rx, 
         double dist = (t - m_targetEntry).norm();
         if (dist < PARAM_MOTION_TOLERANCE) {
             printInfo("Reached ENTRY Point. Ready.");
-            m_puncturePhase = PHASE_READY; // [C2065 修复] 现在可以正确识别了
+            m_puncturePhase = PHASE_READY; // [C2065 Fix] Now recognized correctly.
+        }
+    }
+    else if (m_puncturePhase == PHASE_RETURNING_ROBOT) {
+        double dist = (t - m_targetApproach).norm();
+        if (dist < PARAM_MOTION_TOLERANCE) {
+            printInfo("<b><font color='green'>[Auto Return] Complete! System completely reset and ready.</font></b>");
+            m_puncturePhase = PHASE_IDLE; // End of the full workflow.
         }
     }
 }
@@ -458,7 +533,24 @@ void PunctureRobot::on_EFAction_btn_clicked() {
         ui.EFAction_btn->setText("Start Needle");
         return;
     }
+
+    if (!m_hasRecordedZeroPos) {
+        QString efToolName = ui.efTool_cbb->currentText();
+        if (m_toolCache.contains(efToolName) && m_toolCache[efToolName].isVisible) {
+            m_needleZeroPosW_mm = toolToEigen(m_toolCache[efToolName]).block<3,1>(0,3);
+            
+            m_needleZeroDirW = getToolCurrentAxis(efToolName);
+            
+            m_hasRecordedZeroPos = true;
+            printInfo("<b>[System] Rail Physical Zero Position Recorded.</b>");
+        } else {
+            printInfo("Error: Cannot start. Needle tracking lost!");
+            return; 
+        }
+    }
+
     m_needleState = NeedleState::INSERTING;
+    m_lastDistToTarget = 99999.0;
     ui.EFAction_btn->setText("STOP Needle");
     
     // Send Velocity Command
@@ -466,20 +558,40 @@ void PunctureRobot::on_EFAction_btn_clicked() {
                              m_targetRotVec.x(), m_targetRotVec.y(), m_targetRotVec.z(), PARAM_NEEDLE_VEL_INSERT);
 }
 
-void PunctureRobot::on_RetractAction_btn_clicked() {
-    if (!isConnectedEndEffector) return;
+void PunctureRobot::on_ReturnAction_btn_clicked() {
+    if (!isConnectedRobot || !isConnectedEndEffector) {
+        printInfo("Error: Robot or EndEffector not connected."); return;
+    }
+    if (!m_hasRecordedZeroPos) {
+        printInfo("Error: Needle zero position not recorded. Cannot auto-return."); return;
+    }
+
+    // 1. Stop other ongoing actions.
+    if (m_needleState != NeedleState::IDLE) {
+        m_needleState = NeedleState::IDLE;
+        ui.EFAction_btn->setText("Start Needle");
+    }
+
+    // 2. Switch state to the "retracting needle" phase.
+    printInfo("<b>[Auto Return] Step 1: Retracting Needle...</b>");
+    m_puncturePhase = PHASE_RETURNING_NEEDLE; // Mark the system as entering the auto-return flow.
     m_needleState = NeedleState::RETRACTING;
     m_lastDistToTarget = 99999.0;
+    
+    // 3. Send the retract command (robot stays at Entry; feed axis reverses).
     emit reqUpdateTargetPose(m_targetEntry.x(), m_targetEntry.y(), m_targetEntry.z(),
-                             m_targetRotVec.x(), m_targetRotVec.y(), m_targetRotVec.z(), -PARAM_NEEDLE_VEL_RETRACT);
+                             m_targetRotVec.x(), m_targetRotVec.y(), m_targetRotVec.z(), 
+                             -PARAM_NEEDLE_VEL_RETRACT);
 }
 
 // ---------------------------------------------------------
 // DATA UPDATE
 // ---------------------------------------------------------
 void PunctureRobot::onToolsUpdated(const QVector<TrackedTool>& tools) {
+    // 1. Update the tool cache.
     for (const auto& tool : tools) m_toolCache[tool.name] = tool;
 
+    // 2. Update UI combo-box colors (based on visibility).
     auto updateCbbColor = [&](QComboBox* cbb, const TrackedTool& data) {
         if (cbb->currentText() == data.name) {
             QString colorStr = data.isVisible ? "rgb(0, 255, 0)" : "rgb(255, 0, 0)";
@@ -497,72 +609,122 @@ void PunctureRobot::onToolsUpdated(const QVector<TrackedTool>& tools) {
         updateCbbColor(ui.efTool_cbb, data);
     }
 
-    if (m_needleState == NeedleState::INSERTING) {
+    // =========================================================
+    // State machine: closed-loop monitoring and virtual limits for insertion/retraction.
+    // =========================================================
+    if (m_needleState == NeedleState::INSERTING || m_needleState == NeedleState::RETRACTING) {
         
         QString efToolName = ui.efTool_cbb->currentText();
-        if (m_toolCache.contains(efToolName) && m_toolCache[efToolName].isVisible) {
-            
-            // 1. 获取当前位置
+        bool isNeedleVisible = m_toolCache.contains(efToolName) && m_toolCache[efToolName].isVisible;
+
+        if (isNeedleVisible) {
+            // Get the current needle tip position.
             Eigen::Vector3d currentTipW_mm = toolToEigen(m_toolCache[efToolName]).block<3,1>(0,3);
-            
-            // 2. 计算实时距离
-            double distToGo = (m_finalTargetW_mm - currentTipW_mm).norm();
-            
-            // 3. 决策逻辑
-            double cmdSpeed = 0.0;
-            bool shouldStop = false;
 
-            // [逻辑 A] 过零检测：如果距离反而变大了(且在近处)，说明刚刚穿过头了！
-            if (distToGo > m_lastDistToTarget && distToGo < 5.0) {
-                printInfo(QString("Overshoot Detected! (Diff: %1 mm)").arg(distToGo - m_lastDistToTarget));
-                shouldStop = true;
-            }
-            m_lastDistToTarget = distToGo; // 更新记录
-
-            // [逻辑 B] 分段减速：防止惯性冲过头
-            // 距离 > 10mm : 全速 (2.0)
-            // 距离 2~10mm : 线性减速 (2.0 -> 0.5)
-            // 距离 < 2mm  : 极低速蠕动 (0.5)
-            if (!shouldStop) {
-                if (distToGo < 1.0) {
-                    shouldStop = true; // 到达终点
-                } 
-                else if (distToGo < 15.0) {
-                    // 减速公式: 距离越近，速度越慢，最低降到 20%
-                    double factor = (distToGo - 1.0) / 14.0; // 0.0 ~ 1.0
-                    factor = std::max(0.2, factor); // 下限 0.2
-                    cmdSpeed = PARAM_NEEDLE_VEL_INSERT * factor; 
-                } 
-                else {
-                    cmdSpeed = PARAM_NEEDLE_VEL_INSERT; // 全速
+            // ---------------------------------------------------------
+            // Global safety wall: virtual limit switch.
+            // ---------------------------------------------------------
+            if (m_hasRecordedZeroPos) {
+                // Compute the current physical extension of the lead screw.
+                double currentRailTravel = (currentTipW_mm - m_needleZeroPosW_mm).norm();
+                
+                // 1. Forward limit: max 13.8 cm (138.0 mm).
+                if (m_needleState == NeedleState::INSERTING && currentRailTravel >= 138.0) {
+                    printInfo(QString("<b><font color='red'>HARDWARE LIMIT REACHED (138mm)! Forced Stop.</font></b>"));
+                    m_needleState = NeedleState::IDLE;
+                    ui.EFAction_btn->setText("Start Needle");
+                    emit reqUpdateTargetPose(0,0,0,0,0,0, 0.0); // Emergency stop.
+                    return; // Block all subsequent motion commands.
+                }
+                
+                // 2. Rear limit: prevent base collision during retraction (tolerance 1.5 mm).
+                if (m_needleState == NeedleState::RETRACTING && currentRailTravel <= 1.5) {
+                    printInfo("<b><font color='green'>Needle Fully Retracted. Auto Stop.</font></b>");
+                    m_needleState = NeedleState::IDLE;
+                    if (m_puncturePhase == PHASE_RETURNING_NEEDLE) {
+                        printInfo("<b>[Auto Return] Step 2: Needle safe. UR Robot returning to Approach Point...</b>");
+                        m_puncturePhase = PHASE_RETURNING_ROBOT; // Switch to the robot retreat phase.
+                        
+                        // Send command: robot returns to the Approach point, needle speed set to 0.
+                        emit reqUpdateTargetPose(m_targetApproach.x(), m_targetApproach.y(), m_targetApproach.z(),
+                                                 m_targetRotVec.x(), m_targetRotVec.y(), m_targetRotVec.z(), 0.0);
+                    } else {
+                        // For a manual retraction, just send zero speed to stop.
+                        emit reqUpdateTargetPose(0,0,0,0,0,0, 0.0);
+                    }
+                    return; 
                 }
             }
-
-            // 4. 执行指令
-            if (shouldStop) {
-                printInfo(QString("<b>Target Reached! Final Error: %1 mm</b>").arg(distToGo));
-                m_needleState = NeedleState::IDLE;
-                ui.EFAction_btn->setText("Start Needle");
+            // ---------------------------------------------------------
+            // Standard insertion closed-loop control (use 1D projected distance to prevent overshoot).
+            if (m_needleState == NeedleState::INSERTING) {
+                // 1. Compute the vector from the current tip to the target point.
+                Eigen::Vector3d vecToTarget = m_finalTargetW_mm - currentTipW_mm;
                 
-                // [急停] 发送 0 速度
-                emit reqUpdateTargetPose(0,0,0,0,0,0, 0.0); 
-            }
-            else {
-                // 持续更新速度 (Worker 会实时调整 PWM)
-                // 保持 Robot 位置不变 (发送 TargetEntry 占位)
-                emit reqUpdateTargetPose(m_targetEntry.x(), m_targetEntry.y(), m_targetEntry.z(),
-                                         m_targetRotVec.x(), m_targetRotVec.y(), m_targetRotVec.z(), 
-                                         cmdSpeed); 
+                // 2. [Core fix] Compute the remaining projected distance along the insertion direction (1D depth).
+                // m_needleZeroDirW is the axial direction vector for insertion.
+                // This asks: along the needle direction, how far am I from the target plane?
+                double distToGo1D = vecToTarget.dot(m_needleZeroDirW);
+
+                // 3. Decision logic.
+                double cmdSpeed = 0.0;
+                bool shouldStop = false;
+
+                // [Hard stop wall] If remaining projected distance <= 0, the tip has passed the target depth.
+                // Regardless of lateral error, stop once depth is reached.
+                if (distToGo1D <= 0.0) {
+                    printInfo(QString("Passed Target Plane! Overshoot: %1 mm").arg(-distToGo1D));
+                    shouldStop = true;
+                }
+
+                // Segmented deceleration logic.
+                if (!shouldStop) {
+                    if (distToGo1D < 0.5) { 
+                        // Tighten the threshold to 0.5 mm since 1D distance is unaffected by lateral error.
+                        shouldStop = true; 
+                    } 
+                    else if (distToGo1D < 15.0) {
+                        // The closer the distance, the slower the speed; allow a minimum of 15% to counter inertia.
+                        double factor = (distToGo1D - 0.5) / 14.5; 
+                        factor = std::max(0.15, factor); 
+                        cmdSpeed = PARAM_NEEDLE_VEL_INSERT * factor; 
+                    } 
+                    else {
+                        cmdSpeed = PARAM_NEEDLE_VEL_INSERT; // Full speed.
+                    }
+                }
+
+                // 4. Execute commands.
+                if (shouldStop) {
+                    // Compute the true 3D final error and print it for reference.
+                    double final3DError = (m_finalTargetW_mm - currentTipW_mm).norm();
+                    printInfo(QString("<b>Target Reached! 3D Error: %1 mm</b>").arg(final3DError));
+                    
+                    m_needleState = NeedleState::IDLE;
+                    ui.EFAction_btn->setText("Start Needle");
+                    
+                    // [Emergency stop] Send zero speed.
+                    emit reqUpdateTargetPose(0,0,0,0,0,0, 0.0); 
+                }
+                else {
+                    emit reqUpdateTargetPose(m_targetEntry.x(), m_targetEntry.y(), m_targetEntry.z(),
+                                             m_targetRotVec.x(), m_targetRotVec.y(), m_targetRotVec.z(), 
+                                             cmdSpeed); 
+                }
             }
         }
         else {
-            // 安全保护
+            // Safety protection: tracking lost.
             printInfo("Safety Stop: Needle Tracking Lost!");
             m_needleState = NeedleState::IDLE;
+            ui.EFAction_btn->setText("Start Needle"); // Restore button text.
             emit reqUpdateTargetPose(0,0,0,0,0,0, 0.0);
         }
     }
 
+    // =========================================================
+    // Calibration matrix data collection.
+    // =========================================================
     if (m_isCollectingCalib) {
         QString pName = ui.probeTool_cbb->currentText();
         QString nName = ui.efToolPrepare_cbb->currentText();
@@ -591,7 +753,7 @@ const TrackedTool* PunctureRobot::findToolByName(const QVector<TrackedTool>& too
     return nullptr;
 }
 
-// [C2039 修复] 在 .h 中添加了声明，这里是实现
+// [C2039 Fix] Declarations added in .h; implementation here.
 bool PunctureRobot::getLogicTools(TrackedTool& tPat, TrackedTool& tRob) { return false; }
 bool PunctureRobot::syncRawToLogicTools(const QVector<TrackedTool>& rawTools, TrackedTool& logicPat, TrackedTool& logicRob) { return false; }
 
@@ -600,7 +762,7 @@ bool PunctureRobot::getLandmarksAndTrajectory(Eigen::Vector3d& pEntryW, Eigen::V
     emit reqGetLandmarks(l, m_trajectoryPointsetName);
     if (l.size() < 2) return false;
     
-    // [C2440 修复] 添加 const 关键字
+    // [C2440 Fix] Add the const keyword.
     const double* e = l[0]->getCoordinates(); 
     const double* t = l[1]->getCoordinates();
     
@@ -618,7 +780,7 @@ Eigen::Matrix4d PunctureRobot::toolToEigen(const TrackedTool& t) {
     return Eigen::Matrix4d::Identity();
 }
 
-// [C2039 修复] 这些函数不再使用但需保留定义以防止其他未修改部分的连接错误
+// [C2039 Fix] These functions are unused but kept to avoid connection errors in untouched code.
 void PunctureRobot::solveAndEmitKinematics(const Eigen::Matrix4d&, const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&) {}
 void PunctureRobot::calculatePatientLocalLandmarks(const Eigen::Matrix4d&, const Eigen::Vector3d&, const Eigen::Vector3d&) {}
 void PunctureRobot::generateTwoPhasePath(const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Matrix4d&) {}
@@ -649,7 +811,7 @@ void PunctureRobot::on_connectEndeffector_btn_clicked() {
 
 Eigen::Vector3d PunctureRobot::getToolCurrentAxis(const QString& toolName)
 {
-    // 1. 获取 Tool 指针 (需要访问 Tool 类的 m_direction 和 m_finalMatrix)
+    // 1. Get the Tool pointer (needs Tool::m_direction and Tool::m_finalMatrix).
     std::vector<Tool*> tools;
     emit reqGetTools(tools);
     
@@ -663,16 +825,16 @@ Eigen::Vector3d PunctureRobot::getToolCurrentAxis(const QString& toolName)
 
     if (!pTool) {
         printInfo("Error: Tool object not found!");
-        return Eigen::Vector3d::UnitZ(); // 默认返回 Z 防止崩溃
+        return Eigen::Vector3d::UnitZ(); // Default to Z to avoid a crash.
     }
 
-    // 2. 获取当前的旋转矩阵 (World Frame)
-    // 注意：这里直接用 Tool 的 FinalMatrix，比 toolCache 更实时、更准确
+    // 2. Get the current rotation matrix (world frame).
+    // Note: use the tool FinalMatrix directly; it is more current and accurate than toolCache.
     vtkSmartPointer<vtkMatrix4x4> vtkMat = pTool->getFinalMatrix();
     Eigen::Matrix3d rotMat;
     for(int r=0; r<3; r++) for(int c=0; c<3; c++) rotMat(r,c) = vtkMat->GetElement(r,c);
 
-    // 3. 根据 m_direction 解析局部向量
+    // 3. Resolve the local vector from m_direction.
     std::string dirStr = pTool->getDirection(); // e.g. "Z-", "X+"
     Eigen::Vector3d localAxis;
 
@@ -683,11 +845,11 @@ Eigen::Vector3d PunctureRobot::getToolCurrentAxis(const QString& toolName)
     else if (dirStr == "Z+") localAxis = Eigen::Vector3d::UnitZ();
     else if (dirStr == "Z-") localAxis = -Eigen::Vector3d::UnitZ();
     else {
-        // 默认情况 (根据你的 Tool 代码默认是 Z+)
+        // Default case (your Tool code defaults to Z+).
         localAxis = Eigen::Vector3d::UnitZ(); 
     }
 
-    // 4. 转换到世界坐标系
+    // 4. Transform to the world coordinate system.
     // World_Vector = Rotation_Matrix * Local_Vector
     return (rotMat * localAxis).normalized();
 }

@@ -1,4 +1,4 @@
-#ifndef OMNITRANSFORM_H
+﻿#ifndef OMNITRANSFORM_H
 #define OMNITRANSFORM_H
 
 #include <QString>
@@ -6,7 +6,7 @@
 
 class OmniTransform {
 public:
-    // 构造函数，默认为单位矩阵
+    // Constructor; defaults to the identity matrix.
     OmniTransform(const QString& name = "", const Eigen::Matrix4d& value = Eigen::Matrix4d::Identity());
 
     // Setters
@@ -17,7 +17,7 @@ public:
     QString getName() const;
     Eigen::Matrix4d getValue() const;
     
-    // 获取引用的 Getter (高效读取)
+    // Getter that returns a reference (efficient access).
     const Eigen::Matrix4d& getValueRef() const;
 
 private:

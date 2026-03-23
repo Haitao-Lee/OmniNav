@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'c:\work_and_study\code\seed implantation\OmniNav\SRC\Modules\DataManager\DataManager.ui'
 #
@@ -288,7 +288,7 @@ class Ui_DataManagerClass(object):
 "    gridline-color: #6c6c6c;  \n"
 "}\n"
 "\n"
-"/* 表头（第一行）的样式 */\n"
+"/* Header row (first row) styling. */\n"
 "QHeaderView::section {\n"
 "    background-color: rgb(77,77,115);\n"
 "    color: #FFFFFF;\n"
@@ -297,7 +297,7 @@ class Ui_DataManagerClass(object):
 "    border: 1px solid #6c6c6c;\n"
 "}\n"
 "\n"
-"/* 左上角那个小方块的样式（建议加上，否则是白色的） */\n"
+"/* Top-left corner square styling (recommended; otherwise it is white). */\n"
 "QTableCornerButton::section {\n"
 "    background-color: #404040;\n"
 "    border: 1px solid #6c6c6c;\n"
@@ -416,7 +416,7 @@ class Ui_DataManagerClass(object):
 "    gridline-color: #6c6c6c;  \n"
 "}\n"
 "\n"
-"/* 表头（第一行）的样式 */\n"
+"/* Header row (first row) styling. */\n"
 "QHeaderView::section {\n"
 "    background-color: rgb(77,77,115);\n"
 "    color: #FFFFFF;\n"
@@ -425,7 +425,7 @@ class Ui_DataManagerClass(object):
 "    border: 1px solid #6c6c6c;\n"
 "}\n"
 "\n"
-"/* 左上角那个小方块的样式（建议加上，否则是白色的） */\n"
+"/* Top-left corner square styling (recommended; otherwise it is white). */\n"
 "QTableCornerButton::section {\n"
 "    background-color: #404040;\n"
 "    border: 1px solid #6c6c6c;\n"
@@ -539,7 +539,7 @@ class Ui_DataManagerClass(object):
 "    gridline-color: #6c6c6c;  \n"
 "}\n"
 "\n"
-"/* 表头（第一行）的样式 */\n"
+"/* Header row (first row) styling. */\n"
 "QHeaderView::section {\n"
 "    background-color: rgb(77,77,115);\n"
 "    color: #FFFFFF;\n"
@@ -548,7 +548,7 @@ class Ui_DataManagerClass(object):
 "    border: 1px solid #6c6c6c;\n"
 "}\n"
 "\n"
-"/* 左上角那个小方块的样式（建议加上，否则是白色的） */\n"
+"/* Top-left corner square styling (recommended; otherwise it is white). */\n"
 "QTableCornerButton::section {\n"
 "    background-color: #404040;\n"
 "    border: 1px solid #6c6c6c;\n"
@@ -656,7 +656,7 @@ class Ui_DataManagerClass(object):
 "    gridline-color: #6c6c6c;  \n"
 "}\n"
 "\n"
-"/* 表头（第一行）的样式 */\n"
+"/* Header row (first row) styling. */\n"
 "QHeaderView::section {\n"
 "    background-color: rgb(77,77,115);\n"
 "    color: #FFFFFF;\n"
@@ -665,7 +665,7 @@ class Ui_DataManagerClass(object):
 "    border: 1px solid #6c6c6c;\n"
 "}\n"
 "\n"
-"/* 左上角那个小方块的样式（建议加上，否则是白色的） */\n"
+"/* Top-left corner square styling (recommended; otherwise it is white). */\n"
 "QTableCornerButton::section {\n"
 "    background-color: #404040;\n"
 "    border: 1px solid #6c6c6c;\n"
@@ -767,7 +767,7 @@ class Ui_DataManagerClass(object):
 "    gridline-color: #6c6c6c;  \n"
 "}\n"
 "\n"
-"/* 表头（第一行）的样式 */\n"
+"/* Header row (first row) styling. */\n"
 "QHeaderView::section {\n"
 "    background-color: rgb(77,77,115);\n"
 "    color: #FFFFFF;\n"
@@ -776,7 +776,7 @@ class Ui_DataManagerClass(object):
 "    border: 1px solid #6c6c6c;\n"
 "}\n"
 "\n"
-"/* 左上角那个小方块的样式（建议加上，否则是白色的） */\n"
+"/* Top-left corner square styling (recommended; otherwise it is white). */\n"
 "QTableCornerButton::section {\n"
 "    background-color: #404040;\n"
 "    border: 1px solid #6c6c6c;\n"
@@ -996,3 +996,4 @@ class Ui_DataManagerClass(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Property), _translate("DataManagerClass", "Property"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Advance), _translate("DataManagerClass", "Advanced"))
 import DataManager_rc
+

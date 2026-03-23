@@ -1,4 +1,4 @@
-#include "VisualizationUtils.h"
+﻿#include "VisualizationUtils.h"
 
 // VTK Implementation
 #include <vtkCylinderSource.h>
@@ -149,7 +149,7 @@ vtkSmartPointer<vtkPolyData> VisualizationUtils::getNeedlePolyData(double radius
 
     auto append = vtkSmartPointer<vtkAppendPolyData>::New();
 
-    // 1. 构建基础形状 (默认 Z-, 即针尖在原点，针身在Z轴负方向)
+    // 1. Build the base shape (default Z-: tip at origin, shaft along negative Z).
     if (cylinderHeight > 1e-6) {
         auto cylinder = vtkSmartPointer<vtkCylinderSource>::New();
         cylinder->SetHeight(cylinderHeight);
@@ -158,7 +158,7 @@ vtkSmartPointer<vtkPolyData> VisualizationUtils::getNeedlePolyData(double radius
         cylinder->Update();
 
         auto tfCyl = vtkSmartPointer<vtkTransform>::New();
-        // 移动到 -Z 轴
+        // Translate to the -Z axis.
         tfCyl->Translate(0, 0, -coneHeight - cylinderHeight / 2.0);
         tfCyl->RotateX(90);
 
@@ -177,9 +177,9 @@ vtkSmartPointer<vtkPolyData> VisualizationUtils::getNeedlePolyData(double radius
         cone->Update();
 
         auto tfCone = vtkSmartPointer<vtkTransform>::New();
-        // 移动到 -Z 轴靠近原点处
+        // Translate to -Z near the origin.
         tfCone->Translate(0, 0, -coneHeight / 2.0);
-        tfCone->RotateY(-90); // Cone 默认朝 X，转到 Z
+        tfCone->RotateY(-90); // Cone defaults to +X; rotate to Z.
 
         auto filterCone = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
         filterCone->SetInputConnection(cone->GetOutputPort());
@@ -190,26 +190,26 @@ vtkSmartPointer<vtkPolyData> VisualizationUtils::getNeedlePolyData(double radius
 
     append->Update();
 
-    // 2. 根据选中的方向应用最终变换
+    // 2. Apply the final transform based on the selected direction.
     auto tfFinal = vtkSmartPointer<vtkTransform>::New();
     
-    // 基础形状是 "Z-" (0,0,-1)
+    // Base shape is "Z-" (0, 0, -1).
     if (direction == "Z+") {
-        tfFinal->RotateX(180); // 翻转到 +Z
+        tfFinal->RotateX(180); // Flip to +Z.
     }
     else if (direction == "X-") {
-        tfFinal->RotateY(90);  // -Z 转到 -X
+        tfFinal->RotateY(90);  // -Z to -X.
     }
     else if (direction == "X+") {
-        tfFinal->RotateY(-90); // -Z 转到 +X
+        tfFinal->RotateY(-90); // -Z to +X.
     }
     else if (direction == "Y-") {
-        tfFinal->RotateX(90);  // -Z 转到 -Y
+        tfFinal->RotateX(90);  // -Z to -Y.
     }
     else if (direction == "Y+") {
-        tfFinal->RotateX(-90); // -Z 转到 +Y
+        tfFinal->RotateX(-90); // -Z to +Y.
     }
-    // else if (direction == "Z-") {不做任何事，保持默认}
+    // else if (direction == "Z-") {do nothing; keep default.}
 
     auto filterFinal = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
     filterFinal->SetInputConnection(append->GetOutputPort());
@@ -305,19 +305,20 @@ QWidget* VisualizationUtils::getVisibleWidget(bool visible) {
 
 vtkSmartPointer<vtkPolyData> VisualizationUtils::getTubePolyData(Eigen::Vector3d start, Eigen::Vector3d end, double radius, int resolution)
 {
-    // 1. 创建线源
+    // 1. Create the line source.
     auto lineSource = vtkSmartPointer<vtkLineSource>::New();
-    lineSource->SetPoint1(start.data()); // Eigen 直接转 double*
+    lineSource->SetPoint1(start.data()); // Eigen directly to double*.
     lineSource->SetPoint2(end.data());
     lineSource->Update();
 
-    // 2. 管道滤波 (加粗)
+    // 2. Tube filter (thicken).
     auto tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
     tubeFilter->SetInputConnection(lineSource->GetOutputPort());
-    tubeFilter->SetRadius(radius);       // 设置半径
+    tubeFilter->SetRadius(radius);       // Set radius.
     tubeFilter->SetNumberOfSides(resolution);
-    tubeFilter->CappingOff();             // 开启封口 (实心)
+    tubeFilter->CappingOff();             // Enable caps (solid).
     tubeFilter->Update();
 
     return tubeFilter->GetOutput();
 }
+

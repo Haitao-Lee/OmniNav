@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.28)
+﻿cmake_minimum_required(VERSION 3.28)
 
 cmake_policy(SET CMP0167 NEW)
 
-# 指定 vcpkg 工具链
+# Set the vcpkg toolchain.
 set(CMAKE_TOOLCHAIN_FILE "../../vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 
 project(OmniNav VERSION 0.1.0 LANGUAGES CXX)
@@ -18,13 +18,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# 基础库查找
+# Find base dependencies.
 find_package(Qt5 REQUIRED COMPONENTS Widgets Network Core Gui SerialPort)
 find_package(spdlog REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
 
-# ==================== VTK 配置 ====================
+# ==================== VTK Configuration ====================
 find_package(VTK REQUIRED)
 set(PROJECT_VTK_LIBS "")
 
@@ -57,7 +57,7 @@ endif()
 # unset(VTK_INCLUDE_DIRS CACHE)
 # unset(VTK_VERSION CACHE)
 
-# find_package(VTK 9.0 REQUIRED COMPONENTS  # 需大于9.0
+# find_package(VTK 9.0 REQUIRED COMPONENTS  # Requires VTK > 9.0.
 #     CommonCore
 #     RenderingCore
 #     RenderingOpenGL2
@@ -78,17 +78,17 @@ endif()
 #     VTK::IOImage
 # )
 
-# ==================== ITK 配置 (新增) ====================
+# ==================== ITK Configuration (Added) ====================
 find_package(ITK REQUIRED COMPONENTS
-    ITKCommon            # 核心
-    ITKIOImageBase       # IO 基础
-    ITKIOGDCM            # DICOM 支持
-    ITKIONIFTI           # NIfTI 支持
-    ITKImageIntensity    # 包含 RescaleIntensity 等图像处理过滤器
+    ITKCommon            # Core.
+    ITKIOImageBase       # IO base.
+    ITKIOGDCM            # DICOM support.
+    ITKIONIFTI           # NIfTI support.
+    ITKImageIntensity    # Includes RescaleIntensity and other image filters.
 )
 include(${ITK_USE_FILE})
 
-# ==================== 配置文件与源码处理 ====================
+# ==================== Config Files and Sources ====================
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/SRC/ndicapi/ndicapiExport.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/ndicapiExport.h"
@@ -97,11 +97,11 @@ configure_file(
 file(GLOB_RECURSE UI_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/*.ui")
 file(GLOB_RECURSE ALL_RESOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/*.qrc")
 
-# 递归或分组获取所有源码
+# Collect all sources (recursive or grouped).
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/*.cpp")
 file(GLOB HEAD_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/*.h")
 
-# 各子模块源码获取 
+# Collect sources for each submodule. 
 file(GLOB BASE_SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/Base/*.cpp")
 file(GLOB BASE_HDR CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/Base/*.h")
 file(GLOB ITEM_SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/Item/*.cpp")
@@ -142,7 +142,7 @@ file(GLOB UR_HPP CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/NewUrAPI/*.h
 file(GLOB UTIL_SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/Utils/*.cpp")
 file(GLOB UTIL_HDR CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/Utils/*.h")
 
-# ==================== 可执行文件构建 ====================
+# ==================== Executable Build ====================
 add_executable(${PROJECT_NAME}
     ${HEAD_FILES} ${SRC_FILES}
     ${BASE_HDR} ${BASE_SRC}
@@ -168,7 +168,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 
 
-# 包含路径
+# Include paths.
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/SRC/Base
@@ -187,7 +187,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-# ==================== 链接库 ====================
+# ==================== Link Libraries ====================
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt5::Widgets
     Qt5::Network
@@ -200,18 +200,18 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Boost::system
     Boost::thread
     ${PROJECT_VTK_LIBS}
-    ${ITK_LIBRARIES}     # 链接 ITK 库
+    ${ITK_LIBRARIES}     # Link ITK libraries.
     ws2_32
 
     "${CMAKE_CURRENT_SOURCE_DIR}/SRC/Modules/PunctureRobot/drivers/libs/windows/x86_64/librockmong.lib"
 )
 
 
-# ==================== 2. 自动拷贝动态库 (.dll) ====================
-# 获取目录下所有的 .dll 文件
+# ==================== 2. Auto-Copy DLLs (.dll) ====================
+# Get all .dll files in the directory.
 file(GLOB WINDOWS_DLLS "${CMAKE_CURRENT_SOURCE_DIR}/SRC/Modules/PunctureRobot/drivers/libs/windows/x86_64/*.dll")
 
-# 编译生成 .exe 后，自动把 .dll 拷贝过去
+# After building the .exe, copy the .dll files.
 foreach(DLL_FILE ${WINDOWS_DLLS})
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -222,7 +222,7 @@ foreach(DLL_FILE ${WINDOWS_DLLS})
 endforeach()
 
 
-# ==================== 资源拷贝 ====================
+# ==================== Resource Copy ====================
 set(CONFIG_FILES
     "Modules/PunctureRobot/config.json:PunctureRobot_config.json"
     "Modules/DataManager/config.json:DataManager_config.json"
@@ -244,7 +244,7 @@ foreach(FILE_MAP ${CONFIG_FILES})
     )
 endforeach()
 
-# ==================== IDE 分组 ====================
+# ==================== IDE Groups ====================
 source_group("Source Files" FILES ${SRC_FILES})
 source_group("Header Files" FILES ${HEAD_FILES})
 source_group("Base" FILES ${BASE_SRC} ${BASE_HDR})

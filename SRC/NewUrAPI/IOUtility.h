@@ -1,4 +1,4 @@
-#ifndef SOPHIAR_IOUTILITY_H
+﻿#ifndef SOPHIAR_IOUTILITY_H
 #define SOPHIAR_IOUTILITY_H
 
 #include "EasyBuffer.h"
@@ -14,8 +14,8 @@
 
 namespace IOUtility {
 
-    // 返回的 span 一定是 buffer 中的一部分
-    // 出错时返回的 Data() 是 nullptr
+    // The returned span is always a slice of the buffer.
+    // On error, Data() returns nullptr.
     nonstd::span<char> ReadPacket(DataStream &dataStream, EasyBuffer &buffer);
 
     nonstd::span<char> ReadPacket(QIODevice *device, EasyBuffer &buffer);
@@ -30,16 +30,17 @@ namespace IOUtility {
 
     void TryFlushIODevice(QIODevice *device);
 
-    // 返回 true 表示全部读完, out 中填充实际读取的长度
-    // 如果传入的 device 中 waitForReadyRead 永远返回 false, 那么最后一个参数应该填 false
+    // Return true when all data is read; out is filled with the actual length.
+    // If device->waitForReadyRead always returns false, pass false for the last parameter.
     bool TryReadAll(QIODevice *device, char *data, size_t len, size_t *out = nullptr, bool ableToWait = true);
 
     bool TryWriteAll(QIODevice *device, const char *data, size_t len, size_t *out = nullptr, bool ableToWait = true);
 
-    // 类似其他语言中字符串的 join
+    // Similar to string join in other languages.
     // TODO: replace with absl::StrJoin()
     nonstd::span<char> JoinAndWrite(const std::vector<std::string> &strList, char connector, EasyBuffer &buffer);
 }
 
 
 #endif //SOPHIAR_IOUTILITY_H
+

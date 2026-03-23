@@ -1,4 +1,4 @@
-#include "RobotWorker.h"
+﻿#include "RobotWorker.h"
 #include <QThread>
 #include <QDebug>
 #include <cmath>
@@ -164,11 +164,11 @@ void RobotWorker::onControlLoop()
                 emit logMessage(QString("   Target: [%1, %2, %3]")
                                 .arg(tgtX, 0, 'f', 4).arg(tgtY, 0, 'f', 4).arg(tgtZ, 0, 'f', 4));
                 
-                // 重点看这一行！如果是 Approach 阶段，这里应该是 100mm 左右
+                // Focus on this line: in the Approach phase, this should be around 100 mm.
                 emit logMessage(QString("   DISTANCE: %1 mm").arg(distM * 1000.0, 0, 'f', 2));
                 emit logMessage(QString("--------------------------------------------------"));
 
-                // [可选] 软件限位保护：如果距离太远（比如超过 30cm），禁止移动
+                // [Optional] Software limit protection: if the distance is too far (e.g., > 30 cm), block movement.
                 if (distM > 0.50) {
                     emit logMessage("Worker SAFETY STOP: Distance too large (>30cm)! Command Ignored.");
                     return; 
@@ -224,7 +224,7 @@ void RobotWorker::driver_StepperStop() {
 // =========================================================
 void RobotWorker::setFreeDriveMode(bool e) { if(m_isRobotConnected) sendURScript(e ? "def f():\n freedrive_mode()\nend\n" : "def f():\n end_freedrive_mode()\nend\n"); }
 void RobotWorker::sendURScript(const QString& s) { QTcpSocket sock; sock.connectToHost(m_robotIp, 30002); if(sock.waitForConnected(200)) { sock.write(s.toUtf8()); sock.close(); } }
-void RobotWorker::startJog(int a, int d) { m_currentJogAxis=a; m_currentJogDir=d; m_jogTimer->start(); }
+void RobotWorker::startJog(int a, int d) { stopAll(); m_currentJogAxis=a; m_currentJogDir=d; m_jogTimer->start(); }
 void RobotWorker::stopJog() { m_jogTimer->stop(); if(m_urRobot) { RobotVector6 z={0}; m_urRobot->MoveSpeedPosOnly(z,5,0,0.1,0,0); } }
 void RobotWorker::manualControlStepper(double v) { 
     QMutexLocker locker(&m_dataMutex); m_targetNeedleVel = v; 

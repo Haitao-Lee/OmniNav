@@ -1,4 +1,4 @@
-#ifndef SOPHIAR_EASYBUFFER_H
+﻿#ifndef SOPHIAR_EASYBUFFER_H
 #define SOPHIAR_EASYBUFFER_H
 
 #include <memory>
@@ -13,7 +13,7 @@ public:
 
     void Ensure(size_t size);
 
-    // 返回当前所持有的缓存起始地址
+    // Return the start address of the current buffer.
     char *Data();
 
     nonstd::span<char> GetSpan(size_t startPos = 0, size_t endPos = -1);
@@ -25,3 +25,4 @@ private:
 
 
 #endif //SOPHIAR_EASYBUFFER_H
+

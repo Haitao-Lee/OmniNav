@@ -1,4 +1,4 @@
-#define _USE_MATH_DEFINES 
+﻿#define _USE_MATH_DEFINES 
 #include "OpticalNavigation.h"
 #include "GeometryUtils.h"
 #include <vtkMatrix4x4.h>
@@ -76,7 +76,7 @@ void OpticalNavigation::applyTheme(QPushButton* btn, const QString& baseStyle, c
     if (!btn) return;
     QString finalStyle = baseStyle;
     
-    // 保留原有背景图
+    // Preserve the existing background image.
     QString currentSheet = btn->styleSheet();
     QRegularExpression regex("image\\s*:\\s*url\\([^)]+\\);", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch match = regex.match(currentSheet);
@@ -84,24 +84,24 @@ void OpticalNavigation::applyTheme(QPushButton* btn, const QString& baseStyle, c
     QString imageStyle = "";
     if (match.hasMatch()) imageStyle = match.captured(0);
 
-    // [修复]：如果需要 extraBorders，必须将其插入到 baseStyle 的 '}' 之前
+    // [Fix]: if extraBorders is needed, insert it before the '}' in baseStyle.
     if (extraBorders) {
         QString borderStyle = "border-top:1px solid rgb(237, 238, 241); border-bottom:1px solid rgb(237, 238, 241); ";
         int lastBrace = finalStyle.lastIndexOf('}');
         if (lastBrace != -1) {
             finalStyle.insert(lastBrace, borderStyle);
         } else {
-            finalStyle += " { " + borderStyle + " }"; // 如果格式不对，尝试补救
+            finalStyle += " { " + borderStyle + " }"; // If the format is wrong, try to recover.
         }
     }
 
-    // 确保把背景图也塞进去（如果有）
+    // Ensure the background image is included (if any).
     if (!imageStyle.isEmpty()) {
         int lastBrace = finalStyle.lastIndexOf('}');
         if (lastBrace != -1) finalStyle.insert(lastBrace, imageStyle);
     }
     
-    // 追加其他状态的样式（这些是独立的块，可以直接 +=）
+    // Append styles for other states (these are separate blocks and can be added with +=).
     finalStyle += pressedStyle + hoverStyle + toolTipStyle;
     btn->setStyleSheet(finalStyle);
 }
@@ -137,7 +137,7 @@ void OpticalNavigation::initButton()
     setupCombo(ui.output_cali_cbb);
 }
 
-// ... initSplitters, loadConfig, initWorker, createActions 等保持不变 ...
+// ... initSplitters, loadConfig, initWorker, createActions, etc. remain unchanged ...
 
 void OpticalNavigation::initSplitters()
 {
@@ -930,7 +930,7 @@ void OpticalNavigation::performProbePivotCalibration()
 //     Eigen::Vector3d sumTranslation = Eigen::Vector3d::Zero();
 //     Eigen::Matrix3d avgRotation = Eigen::Matrix3d::Identity();
 
-//     // 定义翻转矩阵：让 Tool 与 Probe 针尖对针尖 (Z轴相反)
+//     // Define a flip matrix so the tool and probe tips face each other (Z axis inverted).
 //     Eigen::Matrix4d flipMat = Eigen::Matrix4d::Identity();
 //     flipMat(0, 0) = 1.0; 
 //     flipMat(1, 1) = 1.0; 

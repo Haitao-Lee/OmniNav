@@ -1,4 +1,4 @@
-#include "NetworkUtility.h"
+﻿#include "NetworkUtility.h"
 
 #include <spdlog/spdlog.h>
 
@@ -8,9 +8,9 @@ namespace NetworkUtility {
     class TcpServer : public QTcpServer {
     Q_OBJECT
     protected:
-        // QTcpServer 原始的实现会将自己设置 QTcpSocket 的父亲
-        // 这会导致 QTcpServer 析构的时候所有的 QTcpSocket 也被析构
-        // 因此需要重写这个方法来改变这一行为
+        // The original QTcpServer implementation sets itself as the parent of QTcpSocket.
+        // This causes all QTcpSockets to be destroyed when QTcpServer is destroyed.
+        // Therefore, override this method to change that behavior.
         void incomingConnection(qintptr handle) override {
             auto socket = new QTcpSocket();
             socket->setSocketDescriptor(handle);
@@ -47,3 +47,4 @@ std::unique_ptr<QTcpSocket> NetworkUtility::NewSocketAsServer(quint16 listenPort
     }
     return std::unique_ptr<QTcpSocket>(server->nextPendingConnection());
 }
+

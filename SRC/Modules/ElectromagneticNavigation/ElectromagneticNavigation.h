@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Modules/BaseModule/BaseModule.h"
 #include "ui_ElectromagneticNavigation.h" 
@@ -11,7 +11,7 @@ public:
     explicit ElectromagneticNavigation(QWidget* parent = nullptr);
     ~ElectromagneticNavigation() override;
 
-    // 获取 UI 实例引用
+    // Get a reference to the UI instance.
     Ui::ElectromagneticNavigationClass& getUi() {return ui;}
     void init() override;
     QWidget* getCentralwidget() {

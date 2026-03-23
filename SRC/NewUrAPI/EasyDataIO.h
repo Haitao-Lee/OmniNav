@@ -1,4 +1,4 @@
-#ifndef SOPHIAR_EASYDATAIO_H
+﻿#ifndef SOPHIAR_EASYDATAIO_H
 #define SOPHIAR_EASYDATAIO_H
 
 #include "ByteOrderConvert.hpp"
@@ -7,39 +7,39 @@
 #include <memory>
 #define nonstd std
 
-// 不支持多线程
-// 读写有各自的位置指针
+// Not thread-safe.
+// Read and write have separate position pointers.
 class EasyDataIO {
 public:
     explicit EasyDataIO(nonstd::span<char> buffer = {});
 
     ~EasyDataIO();
 
-    // 会重置读写指针的位置
+    // Resets the read/write positions.
     void SetBuffer(nonstd::span<char> buffer);
 
-    // 重置读写指针的位置
+    // Reset the read/write positions.
     void Reset();
 
-    // 读写当前读指针的位置
+    // Set the current read position.
     void SetReadPos(size_t pos);
 
     size_t GetReadPos();
 
-    // 读写当前写指针的位置
+    // Set the current write position.
     void SetWritePos(size_t pos);
 
     size_t GetWritePos();
 
-    // 获取当前持有 buffer 的总长度
+    // Get the total length of the current buffer.
     size_t Size();
 
-    // 失败则返回 false
+    // Return false on failure.
     bool ReadRawBytes(nonstd::span<char> buffer);
 
     bool WriteRawBytes(nonstd::span<const char> buffer);
 
-    // 如果输入的 buffer 空间不够就会返回 false
+    // Return false if the input buffer is too small.
     bool ReadRestBytes(nonstd::span<char> buffer);
 
     template<typename T>
@@ -67,3 +67,4 @@ private:
 
 
 #endif //SOPHIAR_EASYDATAIO_H
+

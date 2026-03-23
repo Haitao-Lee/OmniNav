@@ -1,4 +1,4 @@
-#ifndef __USB_DEVICE_H
+﻿#ifndef __USB_DEVICE_H
 #define __USB_DEVICE_H
 
 #include <stdint.h>
@@ -15,8 +15,8 @@
 extern "C" {
 #endif
 
-	//扫描USB设备
-	//返回值如果大于0，代表获取到设备的个数。如果等于0，代表未插入设备。如果小于0，代表发生错误
+	//Scan USB devices.
+	//Return value > 0 is the number of devices found; 0 means no device; < 0 indicates an error.
 	int WINAPI UsbDevice_Scan(int* SerialNumbers);
 
 #if defined(__cplusplus)
@@ -24,3 +24,4 @@ extern "C" {
 #endif
 
 #endif
+

@@ -1,4 +1,4 @@
-#ifndef __ADC_H
+﻿#ifndef __ADC_H
 #define __ADC_H
 
 #include <stdint.h>
@@ -15,18 +15,18 @@
 extern "C" {
 #endif
 	
-	//初始化ADC
-	//SerialNumber: 设备序号
-	//Channel：通道编号。0，ADC0. 1, ADC1...
-	//SampleRateHz：采样率。一般设置0
-	//函数返回：0，正常；<0，异常
+	//Initialize ADC.
+	//SerialNumber: device serial number.
+	//Channel: channel index. 0 = ADC0, 1 = ADC1...
+	//SampleRateHz: sampling rate; usually set to 0.
+	//Return: 0 for success; <0 for error.
 	int WINAPI ADC_Init(int SerialNumber, int Channel, int SampleRateHz);
 	
-	//ADC读取
-	//SerialNumber: 设备序号
-	//Channel：通道编号。0，ADC0. 1, ADC1...
-	//Value：AD值
-	//函数返回：0，正常；<0，异常
+	//Read ADC.
+	//SerialNumber: device serial number.
+	//Channel: channel index. 0 = ADC0, 1 = ADC1...
+	//Value: ADC value.
+	//Return: 0 for success; <0 for error.
 	int WINAPI ADC_Read(int SerialNumber, int Channel, int *Value);
 
 #if defined(__cplusplus)
@@ -34,3 +34,4 @@ extern "C" {
 #endif
 
 #endif
+

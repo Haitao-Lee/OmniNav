@@ -1,4 +1,4 @@
-#ifndef SOPHIAR_URCONTROLLER_H
+﻿#ifndef SOPHIAR_URCONTROLLER_H
 #define SOPHIAR_URCONTROLLER_H
 
 #include "RobotTypes.h"
@@ -81,10 +81,10 @@ public:
 
     bool PauseSendingStatus();
 
-    // 获取已经收到的最近一个状态
+    // Get the most recent received status.
     PURStatusT GetLastStatus();
 
-    // 等待并返回下一个状态
+    // Wait for and return the next status.
     PURStatusT GetNextStatus();
 
     static constexpr double a_joint_default = 1.4; // rad/s^2
@@ -93,16 +93,16 @@ public:
     static constexpr double v_tool_default = 0.25; // m/s
     static constexpr double time_slice_default = 0.008; // s
 
-    void Stop(); // 急停
-    RobotVector6 GetJointPos(); // 获取当前关节位置
+    void Stop(); // Emergency stop.
+    RobotVector6 GetJointPos(); // Get the current joint positions.
 
-    // 使用 move 系列指令移动
+    // Move using the move series commands.
     // pose: m, tv: m/s, ta: m/s^2
     void MoveHardPose(const RobotVector6 &pose, double tv = v_tool_default, double ta = a_tool_default);
 
     void MoveHardJoint(const RobotVector6 &joint, double jv = v_joint_default, double ja = a_joint_default);
 
-    // 使用 speed 系列指令移动
+    // Move using the speed series commands.
     // timeSlice: s
     void MoveSoftPose(const RobotVector6 &pose, double kp = 1.0,
                       double jv = v_joint_default, double ja = a_joint_default,
@@ -112,22 +112,22 @@ public:
                        double jv = v_joint_default, double ja = a_joint_default,
                        double timeSlice = time_slice_default);
 
-    // 使用 speed 系列指令移动, 魔改过了，可以旋转了
+    // Move using the speed series commands (modified to allow rotation).
     void MoveSoftPosOnly(const RobotVector6 &pose, double kp = 1.0,
                          double tv = v_tool_default, double ta = a_tool_default,
                          double ja = a_joint_default, double timeSlice = time_slice_default);
 
-    //使用 speedl 指令移动，只平移，传入的speed参数直接是速度值
+    //Move with speedl; translation only, speed parameter is the velocity.
 	void MoveSpeedPosOnly(const RobotVector6& speed, double kp =1.0, double tv = v_tool_default, 
         double ta = a_tool_default, double ja = a_joint_default, double timeSlice = time_slice_default);
 
-    // 在指定时间内机器人停止了就返回 true
+    // Return true if the robot stops within the specified time.
     bool WaitForMotionEnd(std::chrono::milliseconds timeout = 10s);
 
 signals:
 
-    void newPacket(void *pPacket); // 内部使用
-    void newOutPacket(void *pPacket); // 内部使用
+    void newPacket(void *pPacket); // Internal use.
+    void newOutPacket(void *pPacket); // Internal use.
     void NewStatus(PURStatusT status);
 
 private:
@@ -138,3 +138,4 @@ private:
 
 
 #endif //SOPHIAR_URCONTROLLER
+

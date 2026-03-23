@@ -1,4 +1,4 @@
-#include "stdio.h"
+﻿#include "stdio.h"
 #include "usb_device.h"
 #include "io.h"
 #include "adc.h"
@@ -29,9 +29,9 @@ int main(void)
 		}
 	}
 	
-	//初始化pwm0
-	//频率 = 72MHz / (2*36000) = 1KHz
-	//占空比 = 18000 / 36000 * 100% = 50%
+	//Initialize PWM0.
+	//Frequency = 72 MHz / (2*36000) = 1 kHz.
+	//Duty cycle = 18000 / 36000 * 100% = 50%.
 	ret = PWM_Init(SerialNumbers[0], 0, 2, 36000, 18000, 0, 0);
 	if (ret < 0)
 	{
@@ -39,7 +39,7 @@ int main(void)
 		return ret;
 	}
 
-	//PWM开始输出
+	//Start PWM output.
 	ret = PWM_Start(SerialNumbers[0], 0, 0);
 	if (ret < 0)
 	{
@@ -47,7 +47,7 @@ int main(void)
 		return ret;
 	}
 
-	//PWM停止输出
+	//Stop PWM output.
 	ret = PWM_Stop(SerialNumbers[0], 0);
 	if (ret < 0)
 	{
@@ -55,3 +55,4 @@ int main(void)
 		return ret;
 	}
 }
+

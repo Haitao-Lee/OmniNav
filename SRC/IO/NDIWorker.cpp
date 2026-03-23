@@ -1,4 +1,4 @@
-// #include "NDIWorker.h"
+﻿// #include "NDIWorker.h"
 
 // #include <QThread>
 // #include <QDebug>
@@ -9,14 +9,14 @@
 // #include <vector>
 // #include <algorithm>
 
-// // 兼容 ndicapi 的 const char* 转换
+// // Compatibility helper for ndicapi const char* conversion.
 // #define NDI_C(s) const_cast<char*>(s)
 
 // NDIWorker::NDIWorker(QObject *parent)
 //     : QObject(parent),
 //       device(nullptr),
 //       m_keepRunning(false),
-//       FPS(60) // 默认 60Hz 采集
+//       FPS(60) // Default 60 Hz sampling.
 // {
 // }
 
@@ -51,7 +51,7 @@
 //         return;
 //     }
 
-//     // 连接成功后，先发一个 TSTOP 确保设备安静，防止残留数据干扰
+//     // After a successful connection, send TSTOP to quiet the device and avoid stale data.
 //     ndiCommand(device, NDI_C("TSTOP:"));
     
 //     emit statusMessage(QString("NDI Connected via IP %1:%2").arg(ipAddress).arg(port));
@@ -79,31 +79,31 @@
 //     QThread::msleep(200);
 
 //     // ============================================================
-//     // ★★★ 2. 关键修改：强行清洗错误栈 (Mimic Combined API) ★★★
+//     // ★★★ 2. Key change: force-purge the error stack (mimic Combined API). ★★★
 //     // ============================================================
-//     // 如果设备有橙灯报警，必须把错误读完，才能解锁 PHRQ
+//     // If the device shows an orange warning, read all errors to unlock PHRQ.
 //     qDebug() << "[NDI] Purging system errors/warnings...";
     
 //     for (int i = 0; i < 10; ++i) {
-//         // 读取错误 (SEER:0)
+//         // Read errors (SEER:0).
 //         const char* errResp = ndiCommand(device, NDI_C("SEER:0"));
-//         // 读取状态 (SSTAT:0) - 这一步很重要，用于清除 "Status Changed" 标志
+//         // Read status (SSTAT:0) - important for clearing the "Status Changed" flag.
 //         ndiCommand(device, NDI_C("SSTAT:0"));
         
-//         // 如果返回 0000，说明错误栈空了，可以停止
+//         // If it returns 0000, the error stack is empty and we can stop.
 //         if (errResp && strstr(errResp, "0000")) {
 //             qDebug() << "[NDI] Error stack cleared.";
 //             break;
 //         }
-//         // 如果有错误，打印出来看看，但继续读
+//         // If there is an error, log it and keep reading.
 //         if (errResp) qDebug() << "[NDI] Ack Error:" << errResp;
 //         QThread::msleep(50);
 //     }
-//     // 再给一点时间让状态复位
+//     // Give the status a bit more time to reset.
 //     QThread::msleep(200);
 //     // ============================================================
 
-//     // 3. 预防性清理 (PHF)
+//     // 3. Preventive cleanup (PHF).
 //     for (int h = 1; h <= 20; ++h) {
 //         char cmd[16];
 //         sprintf(cmd, "PHF:%02X", h);
@@ -112,7 +112,7 @@
 //     }
 //     QThread::msleep(100);
 
-//     // 4. 加载工具
+//     // 4. Load tools.
 //     QMapIterator<QString, QString> it(toolsConfig);
 //     while (it.hasNext()) {
 //         it.next();
@@ -132,12 +132,12 @@
 //             continue;
 //         }
 
-//         // --- 申请句柄 (PHRQ) ---
+//         // --- Request a handle (PHRQ). ---
 //         const char* phrqResp = ndiCommand(device, NDI_C("PHRQ:********"));
         
-//         // 如果清洗成功，应该能拿到句柄了！
+//         // If the purge succeeded, we should be able to get a handle.
 //         if (!phrqResp || strstr(phrqResp, "ERROR")) {
-//             // 如果清洗了还报错，打印出来看看是什么
+//             // If it still errors after purging, log the error.
 //             emit errorOccurred(QString("PHRQ failed for %1: %2").arg(toolName).arg(phrqResp));
 //             continue;
 //         }
@@ -145,7 +145,7 @@
 //         unsigned int handle = 0;
 //         sscanf(phrqResp, "%02X", &handle);
 
-//         // --- 上传 ROM (PVWR) ---
+//         // --- Upload ROM (PVWR). ---
 //         bool writeOk = true;
 //         const int chunkSize = 64;
         
@@ -191,11 +191,11 @@
 
 //     for (int i = 0; i < 10; ++i) {
 //         const char* resp = ndiCommand(device, NDI_C("SEER:0"));
-//         if (!resp || strstr(resp, "0000")) break; // 没错误了
+//         if (!resp || strstr(resp, "0000")) break; // No more errors.
 //         QThread::msleep(50);
 //     }
     
-//     // 清除可能卡住的 Warning 标志
+//     // Clear any stuck Warning flags.
 //     ndiCommand(device, NDI_C("SSTAT:0")); 
 // }
 
@@ -214,27 +214,27 @@
 //     ndiCommand(device, NDI_C("TSTART:"));
 //     m_keepRunning = true;
 
-//     // 根据 FPS 计算帧间隔 (毫秒)
+//     // Compute the frame interval (ms) from FPS.
 //     const int interval = 1000 / (FPS > 0 ? FPS : 60);
 //     QElapsedTimer timer;
 
 //     while (m_keepRunning) {
 //         timer.restart();
 
-//         // 检查设备连接状态
+//         // Check device connection status.
 //         if (!device) {
 //             emit errorOccurred("Connection lost during tracking.");
 //             break;
 //         }
 
-//         // 复制当前工具列表，减小锁的持有时间
+//         // Copy the current tool list to minimize lock hold time.
 //         QMap<int, QString> toolsSnapshot;
 //         {
 //             QMutexLocker locker(&m_mutex);
 //             toolsSnapshot = m_tools;
 //         }
 
-//         // 遍历查询每个工具 (GX)
+//         // Query each tool (GX).
 //         for (auto it = toolsSnapshot.begin(); it != toolsSnapshot.end(); ++it) {
 //             if (!m_keepRunning) break;
 
@@ -247,7 +247,7 @@
 //             data.handle = it.key();
 //             data.name   = it.value();
 
-//             // 解析 GX 返回的数据
+//             // Parse the GX response.
 //             if (!parseNDIResponse(reply, data)) {
 //                 data.isVisible = false;
 //             }
@@ -255,7 +255,7 @@
 //             emit toolUpdated(data);
 //         }
 
-//         // 帧率控制
+//         // Frame-rate control.
 //         qint64 sleepTime = interval - timer.elapsed();
 //         if (sleepTime > 0) {
 //             QThread::msleep(sleepTime);
@@ -269,23 +269,23 @@
 //  * Response Parsing (Standard NDI ASCII)
 //  * ========================================================= */
 // bool NDIWorker::parseNDIResponse(const char* reply, ToolData& out) {
-//     // 基本校验：长度不够或为空
+//     // Basic validation: empty or too short.
 //     if (!reply || strlen(reply) < 30) return false;
 
-//     // GX 回复格式通常为:
+//     // The GX reply format is typically:
 //     // HHHH SSSS Q0Q0Q0 QxQxQx QyQyQy QzQzQz TxTxTx TyTyTy TzTzTz EEEE ...
-//     // HHHH: 句柄, SSSS: 状态 (0000=Missing, 0001=OK)
+//     // HHHH: handle, SSSS: status (0000=Missing, 0001=OK).
     
-//     // 检查状态位 (偏移量 4, 长度 4)
-//     // "0001" 表示可见且在测量容差内
-//     // 注意：部分设备可能返回其他状态码，这里只处理标准可见
+//     // Check the status field (offset 4, length 4).
+//     // "0001" means visible and within measurement tolerance.
+//     // Note: some devices may return other status codes; only standard visible is handled here.
 //     if (strncmp(reply + 4, "0001", 4) != 0) return false;
 
 //     int q0, qx, qy, qz;
 //     int tx, ty, tz, err;
 
-//     // 解析四元数(Q)和平移(T)以及误差(RMS)
-//     // NDI 的数值是定点数，通常需要除以 10000 或 100
+//     // Parse quaternion (Q), translation (T), and error (RMS).
+//     // NDI values are fixed-point and usually need division by 10000 or 100.
 //     if (sscanf(reply + 8,
 //                "%6d%6d%6d%6d%7d%7d%7d%5d",
 //                &q0, &qx, &qy, &qz,
@@ -296,18 +296,18 @@
 //     out.isVisible = true;
 //     out.rmsError  = err / 10000.0;
 
-//     // 构造四元数并归一化
+//     // Construct and normalize the quaternion.
 //     Eigen::Quaterniond q(
 //         q0 / 10000.0,
 //         qx / 10000.0,
 //         qy / 10000.0,
 //         qz / 10000.0);
     
-//     // 构建 4x4 变换矩阵
+//     // Build the 4x4 transform matrix.
 //     out.matrix = Eigen::Matrix4d::Identity();
 //     out.matrix.block<3,3>(0,0) = q.normalized().toRotationMatrix();
     
-//     // 转换单位 (NDI 通常是 0.01mm，即 1/100)
+//     // Convert units (NDI is typically 0.01 mm, i.e., 1/100).
 //     out.matrix(0,3) = tx / 100.0;
 //     out.matrix(1,3) = ty / 100.0;
 //     out.matrix(2,3) = tz / 100.0;
@@ -321,7 +321,7 @@
 // void NDIWorker::stop() {
 //     m_keepRunning = false;
     
-//     // 给一点时间让 tracking loop 退出
+//     // Give the tracking loop time to exit.
 //     QThread::msleep(100);
 
 //     if (device) {
@@ -334,3 +334,4 @@
 //     QMutexLocker locker(&m_mutex);
 //     m_tools.clear();
 // }
+

@@ -1,4 +1,4 @@
-#include "Base.h"
+﻿#include "Base.h"
 #include <Eigen/Dense>
 #include <QCloseEvent>
 #include <QMessageBox>
@@ -49,9 +49,9 @@ void Base::initRenderTimer()
 
     m_renderTimer->setInterval(1000/60); 
     m_renderTimer->setSingleShot(true);
-    // 定时器超时执行真正的渲染
+    // Run the actual render on timer timeout.
     connect(m_renderTimer, &QTimer::timeout, this, &Base::doThrottledRender);
-    // 启动定时器，让它一直循环检查（或者也可以做成单次触发，循环检查更简单）
+    // Start the timer and keep polling (single-shot would work, but polling is simpler).
     m_renderTimer->start();
 }
 
@@ -375,18 +375,18 @@ void Base::initVTKProperty()
     //     if (!m_lineActors[i]) continue;
     //     vtkActor* lineActor = m_lineActors[i];
     //     if (lineActor) {
-    //         // 1. 关闭光照
+    //         // 1. Disable lighting.
     //         if (lineActor->GetProperty()) {
     //             lineActor->GetProperty()->SetLighting(false);
     //         }
 
-    //         // 2. 【替代方案】让线在深度上“向前”偏移，从而显示在最上面
+    //         // 2. Alternative: push the line forward in depth so it renders on top.
     //         vtkMapper* mapper = lineActor->GetMapper();
     //         if (mapper) {
-    //             // 开启多边形偏移（解决共面闪烁）
+    //             // Enable polygon offset to avoid z-fighting.
     //             mapper->SetResolveCoincidentTopologyToPolygonOffset();
-    //             // 参数1：Factor，参数2：Units（负数表示拉向摄像机）
-    //             // 设置一个较大的负数，强行让线画在前面
+    //             // Parameter 1: Factor; parameter 2: Units (negative pulls toward the camera).
+    //             // Use a large negative value to force the line to render in front.
     //             mapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(0, -66000);
     //         }
     //     }
@@ -441,16 +441,16 @@ void Base::createActions()
     connect(m_uiDisplays[2]->getUi().scrollbar, &QSlider::sliderPressed, [=]() { setInteractiveRendering(true);});
     connect(m_uiDisplays[3]->getUi().scrollbar, &QSlider::sliderPressed, [=]() { setInteractiveRendering(true);});
     connect(m_uiDisplays[0]->getUi().scrollbar, &QSlider::sliderReleased, [=]() {
-        setInteractiveRendering(false); // 恢复高质量
+        setInteractiveRendering(false); // Restore high-quality rendering.
     });
     connect(m_uiDisplays[1]->getUi().scrollbar, &QSlider::sliderReleased, [=]() {
-        setInteractiveRendering(false); // 恢复高质量
+        setInteractiveRendering(false); // Restore high-quality rendering.
     });
     connect(m_uiDisplays[2]->getUi().scrollbar, &QSlider::sliderReleased, [=]() {
-        setInteractiveRendering(false); // 恢复高质量
+        setInteractiveRendering(false); // Restore high-quality rendering.
     });
     connect(m_uiDisplays[3]->getUi().scrollbar, &QSlider::sliderReleased, [=]() {
-        setInteractiveRendering(false); // 恢复高质量
+        setInteractiveRendering(false); // Restore high-quality rendering.
     });
     connect(m_uiDisplays[0]->getUi().scrollbar, &QAbstractSlider::actionTriggered, [=](int action) {
         if (action == QAbstractSlider::SliderSingleStepAdd || 
@@ -932,7 +932,7 @@ void Base::updateViews()
 {
     m_renderPending = true;
 
-    //防止阻塞
+    // Prevent blocking.
     if (m_renderTimer && !m_renderTimer->isActive()) {
         m_renderTimer->start();
     }
@@ -995,11 +995,11 @@ void Base::onCrossLinesUpdate()
         else if (m_cross_line_sign == 2)
             m_lineActors[i]->SetVisibility(1);
 
-        // 恢复 1.0，但关闭光照，防止核显在计算线段阴影时出错
+        // Restore opacity to 1.0, but disable lighting to avoid iGPU shadow artifacts.
         m_lineActors[i]->GetProperty()->SetOpacity(1.0);
         m_lineActors[i]->GetProperty()->SetLighting(false);
         
-        // 关键：不要让线参与 Bounds 计算
+        // Key: exclude lines from bounds computation.
         m_lineActors[i]->SetUseBounds(false);
     }
 
@@ -1058,34 +1058,35 @@ void Base::doThrottledRender()
 
 void Base::setInteractiveRendering(bool enable)
 {
-    // 1. 设置极高的请求帧率 (迫使 VTK 内部自动降级)
+    // 1. Set a very high requested frame rate (forces VTK to downgrade internally).
     double updateRate = enable ? 30.0 : 0.0001;
 
     for (auto& iren : m_irens) {
         if (!iren) continue;
         iren->SetDesiredUpdateRate(updateRate);
 
-        // 【提速大招 1】交互时彻底关闭抗锯齿 (MSAA)
-        // 拖动时边缘会有锯齿，但显卡负载大幅降低
+        // Speedup 1: disable antialiasing (MSAA) during interaction.
+        // Edges will look jagged while dragging, but GPU load drops significantly.
         if (auto renWin = iren->GetRenderWindow()) {
             renWin->SetMultiSamples(enable ? 0 : 4); 
         }
     }
     
-    // 2. 3D 窗口专用优化
+    // 2. 3D window-specific optimizations.
     if (m_renderers[VIEW3D]) {
-        // 关闭深度剥离 (透明度计算非常耗时)
+        // Disable depth peeling (transparency is expensive).
         m_renderers[VIEW3D]->SetUseDepthPeeling(enable ? 0 : 1);
 
         if (!enable) {
-            // 静止时恢复高质量
+            // Restore high-quality rendering when idle.
             m_renderers[VIEW3D]->SetMaximumNumberOfPeels(4);
             m_renderers[VIEW3D]->SetOcclusionRatio(0.1);
         }
     }
 
-    // 3. 松手时强制刷新回高质量
+    // 3. Force a high-quality refresh on release.
     if (!enable) {
         updateViews(); 
     }
 }
+

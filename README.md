@@ -1,4 +1,4 @@
-# OmniNav - 医疗影像导航与机器人穿刺系统
+﻿# OmniNav - Medical Imaging Navigation and Robotic Puncture System
 
 [![C++20](https://img.shields.io/badge/C++-20-blue.svg)](https://isocpp.org/)
 [![Qt5](https://img.shields.io/badge/Qt-5-green.svg)](https://www.qt.io/)
@@ -6,66 +6,67 @@
 [![ITK](https://img.shields.io/badge/ITK-5+-red.svg)](https://itk.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **OmniNav** 是一个模块化、跨平台的医疗影像导航应用程序，集成了多视图 VTK 可视化、光学跟踪（NDI Combined API）和机器人穿刺工作流（Universal Robots + 步进电机末端执行器）。支持 DICOM/NIfTI 医学影像导入、三维模型渲染、工具注册校准、实时跟踪和机器人控制。
+> **OmniNav** is a modular, cross-platform medical imaging navigation application that integrates multi-view VTK visualization, optical tracking (NDI Combined API), and a robotic puncture workflow (Universal Robots + stepper-motor end effector). It supports DICOM/NIfTI import, 3D model rendering, tool registration and calibration, real-time tracking, and robot control.
 
 ---
 
-## 📑 目录
-- [核心特性](#核心特性)
-- [系统架构](#系统架构)
-- [技术栈](#技术栈)
-- [硬件要求](#硬件要求)
-- [依赖安装](#依赖安装)
-- [构建指南](#构建指南)
-- [配置文件详解](#配置文件详解)
-- [快速入门](#快速入门)
-- [模块详解](#模块详解)
-- [数据格式支持](#数据格式支持)
-- [开发指南](#开发指南)
-- [故障排除](#故障排除)
-- [测试与验证](#测试与验证)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
+## 📑 Table of Contents
+- [Core Features](#core-features)
+- [System Architecture](#system-architecture)
+- [Tech Stack](#tech-stack)
+- [Hardware Requirements](#hardware-requirements)
+- [Dependency Installation](#dependency-installation)
+- [Build Guide](#build-guide)
+- [Configuration Files](#configuration-files)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Module Details](#module-details)
+- [Data Format Support](#data-format-support)
+- [Development Guide](#development-guide)
+- [Troubleshooting](#troubleshooting)
+- [Testing and Validation](#testing-and-validation)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 🎯 核心特性
+## 🎯 Core Features
 
-### 影像可视化
-- ✅ **四视图同步**：轴位（Axial）、3D、冠状位（Coronal）、矢状位（Sagittal）
-- ✅ **十字线联动**：跨视图同步导航，点击任意视图自动同步其他视图
-- ✅ **滚动浏览**：支持鼠标滚轮或滑块逐层浏览
-- ✅ **窗宽窗位调节**：实时调整影像对比度
+### Imaging Visualization
+- ✅ **Four synchronized views**: Axial, 3D, Coronal, Sagittal
+- ✅ **Crosshair linkage**: cross-view navigation; clicking one view syncs the others
+- ✅ **Slice scrolling**: mouse wheel or slider
+- ✅ **Window/level adjustment**: real-time contrast tuning
 
-### 数据导入/导出
-- 📁 **医学影像**：DICOM（文件夹或单文件 `.dcm`）、NIfTI（`.nii`/`.nii.gz`）、NRRD、MHD/MHA
-- 🧊 **三维模型**：STL、OBJ、PLY、VTK、VTP、G（用于网格/表面）
-- 📍 **工具定义**：NDI `.rom` 文件（工具几何与 markers）
-- 📊 **标定数据**：JSON 格式的 landmarks、transforms 可导入/导出
-- 📝 **文本**：`.txt` 导入到信息面板
+### Data Import/Export
+- 📁 **Medical images**: DICOM (folder or single `.dcm`), NIfTI (`.nii`/`.nii.gz`), NRRD, MHD/MHA
+- 🧊 **3D models**: STL, OBJ, PLY, VTK, VTP, G (for mesh/surface)
+- 📍 **Tool definitions**: NDI `.rom` files (tool geometry and markers)
+- 📊 **Calibration data**: JSON landmarks/transforms import/export
+- 📝 **Text**: `.txt` imported into the info panel
 
-### 光学导航（NDI）
-- 🔗 **设备连接**：TCP/IP 连接 NDI 光学跟踪系统（Polaris、Spectra、Vega 等）
-- 📍 **工具追踪**：实时获取 6D 位姿（位置+姿态）
-- 🎯 **采样模式**：采集多帧数据计算平均位姿
-- 🔄 **注册（Registration）**：将工具坐标系与影像坐标系对齐
-- ⚙️ **校准（Calibration）**：工具端到端（tip）变换校准
+### Optical Navigation (NDI)
+- 🔗 **Device connection**: TCP/IP to NDI optical tracking systems (Polaris, Spectra, Vega, etc.)
+- 📍 **Tool tracking**: real-time 6D pose (position + orientation)
+- 🎯 **Sampling mode**: multi-frame averaging for stable poses
+- 🔄 **Registration**: align tool coordinates to image coordinates
+- ⚙️ **Calibration**: tool tip-to-tip transform calibration
 
-### 机器人穿刺工作流
-- 🤖 **UR 机器人控制**：通过 RTDE 接口连接 Universal Robots 机械臂
-- 🛠️ **步进电机驱动**：控制穿刺针的进给（通过 `librockmong` 驱动 USB 设备）
-- 🔧 **末端执行器配置**： flange-to-EEF 变换矩阵，支持自定义工具
-- 📋 **工作流向导**：引导式穿刺规划与执行流程
+### Robotic Puncture Workflow
+- 🤖 **UR robot control**: connect to Universal Robots via RTDE
+- 🛠️ **Stepper motor drive**: needle feed control (USB device via `librockmong`)
+- 🔧 **End-effector configuration**: flange-to-EEF transform matrix with custom tool support
+- 📋 **Workflow wizard**: guided puncture planning and execution
 
-### 用户界面
-- 🧩 **模块化设计**：每个功能模块独立，可通过配置文件启用/禁用
-- 📊 **表格管理**：landmarks、tools、transforms 以表格形式管理
-- 🎨 **可定制外观**：视图颜色、透明度、相机参数均可配置
-- 💾 **配置持久化**：JSON 配置文件自动复制到可执行文件旁
+### User Interface
+- 🧩 **Modular design**: each module is independent and can be enabled/disabled via config
+- 📊 **Table management**: landmarks, tools, transforms managed in tables
+- 🎨 **Customizable look**: view colors, transparency, and camera parameters are configurable
+- 💾 **Config persistence**: JSON configs are auto-copied next to the executable
 
 ---
 
-## 🏗️ 系统架构
+## 🏗️ System Architecture
 
 ```mermaid
 flowchart LR
@@ -87,67 +88,67 @@ flowchart LR
     STEP --> USB["librockmong (USB)"]
 ```
 
-### 架构说明
+### Architecture Notes
 
-- **主窗口（Base）**：Qt 主框架，管理菜单、工具栏、模块加载、视图布局
-- **数据层（DataManager）**：统一管理影像、模型、landmarks、tools、transforms，提供数据共享
-- **渲染层（VTK）**：基于 OpenGL 的高性能 3D 渲染，支持体绘制与面绘制
-- **模块系统**：每个功能模块（OpticalNavigation、PunctureRobot 等）独立编译，通过接口与主窗口通信
-- **线程模型**：硬件 I/O（NDI、UR、步进电机）在独立 QThread 中运行，避免阻塞 UI
-- **配置系统**：JSON 配置文件定义模块参数，构建时复制到输出目录
+- **Main window (Base)**: Qt shell that manages menus, toolbars, module loading, and view layout
+- **Data layer (DataManager)**: unified management of images, models, landmarks, tools, and transforms
+- **Rendering layer (VTK)**: high-performance OpenGL rendering with volume and surface rendering
+- **Module system**: each module (OpticalNavigation, PunctureRobot, etc.) is built independently and communicates via interfaces
+- **Thread model**: hardware I/O (NDI, UR, stepper) runs in dedicated QThreads to keep the UI responsive
+- **Config system**: JSON config files define module parameters and are copied to the output directory at build time
 
 ---
 
-## 🔧 技术栈
+## 🔧 Tech Stack
 
-| 组件 | 版本 | 用途 |
+| Component | Version | Purpose |
 |------|------|------|
-| **C++** | C++20 | 核心语言，使用概念、协程（可选）、模块（未来） |
-| **Qt** | 5.15+ | GUI 框架（Widgets）、网络、串口、线程 |
-| **VTK** | 9.0+ | 3D 渲染、图像处理、数据可视化 |
-| **ITK** | 5.0+ | 医学影像 IO（DICOM、NIfTI）与预处理 |
-| **NDI API** | Combined API | 光学跟踪设备通信 |
-| **UR RTDE** | 1.0+ | Universal Robots 实时数据交换 |
-| **spdlog** | 1.x | 高性能日志系统 |
-| **Eigen3** | 3.4+ | 线性代数（矩阵运算） |
-| **Boost** | 1.70+ | 系统、线程库 |
-| **librockmong** | - | 步进电机 USB 驱动（Windows x64） |
-| **CMake** | 3.28+ | 构建系统 |
-| **vcpkg** | - | 依赖包管理（Windows） |
+| **C++** | C++20 | Core language, using concepts/coroutines (optional), modules (future) |
+| **Qt** | 5.15+ | GUI framework (Widgets), networking, serial, threading |
+| **VTK** | 9.0+ | 3D rendering, image processing, visualization |
+| **ITK** | 5.0+ | Medical image IO (DICOM, NIfTI) and preprocessing |
+| **NDI API** | Combined API | Optical tracking device communication |
+| **UR RTDE** | 1.0+ | Universal Robots real-time data exchange |
+| **spdlog** | 1.x | High-performance logging |
+| **Eigen3** | 3.4+ | Linear algebra (matrices) |
+| **Boost** | 1.70+ | System and thread libraries |
+| **librockmong** | - | Stepper motor USB driver (Windows x64) |
+| **CMake** | 3.28+ | Build system |
+| **vcpkg** | - | Dependency manager (Windows) |
 
 ---
 
-## 🖥️ 硬件要求
+## 🖥️ Hardware Requirements
 
-### 必需硬件（临床/研究场景）
-- **光学跟踪系统**：NDI Polaris / Spectra / Vega（提供 6D 位姿）
-- **穿刺机器人**：Universal Robots（UR3/UR5/UR10 等）
-- **步进电机驱动**：自定义 EEF 用于针的进给（通过 USB 控制）
-- **工具 Marker**：NDI 反射球Marker套装（至少1个）
-- **穿刺针**：安装Marker的专用穿刺针
+### Required Hardware (Clinical/Research)
+- **Optical tracking system**: NDI Polaris / Spectra / Vega (6D pose)
+- **Puncture robot**: Universal Robots (UR3/UR5/UR10, etc.)
+- **Stepper motor drive**: custom EEF for needle feed (USB control)
+- **Tool markers**: NDI reflective marker set (at least one)
+- **Puncture needle**: needle with mounted markers
 
-### 推荐配置
-- **操作系统**：Windows 10/11 64-bit（已测试）
-- **GPU**：NVIDIA GeForce GTX 1060 或更高（VTK OpenGL 渲染）
-- **内存**：16 GB RAM（处理大型医学影像）
-- **存储**：SSD，至少 50 GB 可用空间
-- **网络**：千兆以太网（NDI、UR 机器人、PC 在同一子网）
+### Recommended Configuration
+- **OS**: Windows 10/11 64-bit (tested)
+- **GPU**: NVIDIA GeForce GTX 1060 or above (VTK OpenGL)
+- **Memory**: 16 GB RAM (large medical images)
+- **Storage**: SSD with at least 50 GB free
+- **Network**: Gigabit Ethernet (NDI, UR, PC on the same subnet)
 
 ---
 
-## 📦 依赖安装
+## 📦 Dependency Installation
 
-### Windows（Visual Studio 2022 + vcpkg）
+### Windows (Visual Studio 2022 + vcpkg)
 
-1. **安装 Visual Studio 2022**（Desktop development with C++ 工作负载）
-2. **安装 vcpkg**：
+1. **Install Visual Studio 2022** (Desktop development with C++ workload)
+2. **Install vcpkg**:
    ```powershell
    git clone https://github.com/Microsoft/vcpkg.git
    cd vcpkg
    .\bootstrap-vcpkg.bat
    .\vcpkg integrate install
    ```
-3. **安装依赖**：
+3. **Install dependencies**:
    ```powershell
    .\vcpkg install qt5-base[core,network,gui,serialport,widgets]:x64-windows
    .\vcpkg install vtk[core,rendering,renderingopengl2,guisupportqt,imaging,ioimage]:x64-windows
@@ -156,16 +157,16 @@ flowchart LR
    .\vcpkg install boost-system boost-thread:x64-windows
    .\vcpkg install spdlog:x64-windows
    ```
-4. **NDI Combined API**：
-   - 从 NDI 官网下载 Combined API SDK
-   - 解压到 `OmniNav/SRC/CombinedAPIsample/`（或自定义路径，修改 CMake）
-5. **UR RTDE 库**：
-   - 已包含 `OmniNav/SRC/NewUrAPI/`，无需额外安装
-6. **librockmong**：
-   - 已包含预编译库：`OmniNav/SRC/Modules/PunctureRobot/drivers/libs/windows/x86_64/librockmong.lib`
-   - 对应的 DLL 在 `drivers/libs/windows/x86_64/`，构建时自动拷贝
+4. **NDI Combined API**:
+   - Download the Combined API SDK from the NDI website
+   - Extract to `OmniNav/SRC/CombinedAPIsample/` (or customize the path and update CMake)
+5. **UR RTDE library**:
+   - Included under `OmniNav/SRC/NewUrAPI/` (no extra install needed)
+6. **librockmong**:
+   - Prebuilt library: `OmniNav/SRC/Modules/PunctureRobot/drivers/libs/windows/x86_64/librockmong.lib`
+   - DLLs in `drivers/libs/windows/x86_64/` are auto-copied on build
 
-### Linux（Ubuntu 22.04+）
+### Linux (Ubuntu 22.04+)
 
 ```bash
 sudo apt update
@@ -176,42 +177,42 @@ sudo apt install libeigen3-dev libboost-system-dev libboost-thread-dev
 sudo apt install libspdlog-dev
 ```
 
-NDI 和 UR 库需从官方获取。
+NDI and UR libraries must be obtained from official sources.
 
 ---
 
-## 🔨 构建指南
+## 🔨 Build Guide
 
-### Windows（Visual Studio 2022）
+### Windows (Visual Studio 2022)
 
 ```powershell
-# 克隆仓库
+# Clone the repo
 git clone https://github.com/Haitao-Lee/OmniNav.git
 cd OmniNav
 
-# 创建构建目录
+# Create build directory
 mkdir build && cd build
 
-# 配置 CMake（修改 vcpkg 路径）
+# Configure CMake (update vcpkg path)
 cmake -S .. -B . `
   -G "Visual Studio 17 2022" -A x64 `
   -DCMAKE_TOOLCHAIN_FILE="C:/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
-# 构建（Release 模式）
+# Build (Release)
 cmake --build . --config Release
 
-# 可执行文件位置
+# Executable location
 # build/Release/OmniNav.exe
 ```
 
-### 命令行快速构建（MSVC）
+### Quick Command-Line Build (MSVC)
 
 ```powershell
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=../../vcpkg/scripts/buildsystems/vcpkg.cmake
 cmake --build build --config Release
 ```
 
-### 生成 IDE 项目（CLion / VS Code）
+### Generate IDE Projects (CLion / VS Code)
 
 ```bash
 cmake -S . -B build -G "Ninja" -DCMAKE_TOOLCHAIN_FILE=../../vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=Release
@@ -220,9 +221,9 @@ cmake --build build
 
 ---
 
-## ⚙️ 配置文件详解
+## ⚙️ Configuration Files
 
-构建后，所有 `config.json` 文件会自动复制到可执行文件目录。这些文件控制应用程序的行为。
+After build, all `config.json` files are automatically copied to the executable directory. These files control application behavior.
 
 ### 1. `OmniNav_config.json`
 ```json
@@ -236,8 +237,8 @@ cmake --build build
   ]
 }
 ```
-- 定义主窗口加载的模块列表
-- 添加或删除模块名以启用/禁用对应功能
+- Defines the module list loaded by the main window
+- Add/remove module names to enable or disable features
 
 ### 2. `Base_config.json`
 ```json
@@ -275,11 +276,11 @@ cmake --build build
   }
 }
 ```
-- **view_modes**：视图枚举值，用于切换布局
-- **view_order**：四个视图的显示顺序（[Axial, 3D, Coronal, Sagittal]）
-- **colors**：2D 视图背景色、3D 视图上下背景色
-- **geometry**：十字线长度、Z 偏移、单位符号
-- **camera**：平行投影缩放、3D 视图相机参数
+- **view_modes**: view enum values used to switch layouts
+- **view_order**: order of four views ([Axial, 3D, Coronal, Sagittal])
+- **colors**: 2D background and 3D top/bottom gradient colors
+- **geometry**: crosshair length, Z offset, unit symbols
+- **camera**: parallel projection scale and 3D camera parameters
 
 ### 3. `DataManager_config.json`
 ```json
@@ -325,12 +326,12 @@ cmake --build build
   }
 }
 ```
-- **range/thresholds**：影像窗宽窗位默认值
-- **volume_property**：3D 体绘制颜色传输函数（3个控制点）和整体不透明度
-- **images/matrices**：三个标准视图的坐标变换矩阵（从图像空间到世界空间）
-- **images/normals**：各视图的平面法向量（用于切片提取）
-- **landmarks/meshes/tool**：各对象的默认颜色、大小、可见性、变换矩阵
-- **table_widget**：表格 UI 的边距设置
+- **range/thresholds**: default window/level values
+- **volume_property**: 3D transfer function control points and opacity
+- **images/matrices**: transforms for standard views (image space to world space)
+- **images/normals**: view plane normals (for reslicing)
+- **landmarks/meshes/tool**: default color, size, visibility, and transform
+- **table_widget**: UI margin settings for tables
 
 ### 4. `OpticalNavigation_config.json`
 ```json
@@ -338,7 +339,7 @@ cmake --build build
   "Device_IP": "192.168.1.202"
 }
 ```
-- **Device_IP**：NDI 跟踪系统的 IP 地址（默认 192.168.1.202）
+- **Device_IP**: IP address of the NDI tracking system (default 192.168.1.202)
 
 ### 5. `PunctureRobot_config.json`
 ```json
@@ -348,310 +349,310 @@ cmake --build build
   "flange2endeffector": "1, 0, 0, 0, 0, 1, 0, 0.1875, 0, 0, 1, 0.1475, 0, 0, 0, 1"
 }
 ```
-- **Device_IP**：UR 机器人的 IP 地址
-- **EndEffectorSerial**：末端执行器（步进电机）的序列号（用于 USB 识别）
-- **flange2endeffector**： flange 到 EEF（针尖）的 4x4 齐次变换矩阵（行主序）
+- **Device_IP**: UR robot IP address
+- **EndEffectorSerial**: end-effector (stepper motor) serial number for USB identification
+- **flange2endeffector**: 4x4 flange-to-EEF (tip) transform matrix (row-major)
 
 ### 6. `ElectromagneticNavigation_config.json` & `BaseModule_config.json`
-当前为空，预留用于未来的电磁导航模块。
+Currently empty and reserved for the future EM navigation module.
 
 ---
 
-## 🚀 快速入门
+## 🚀 Quick Start
 
-### 1. 首次运行
+### 1. First Run
 ```powershell
-# 进入构建输出目录
+# Go to build output directory
 cd build/Release
 
-# 运行程序（确保配置文件已复制）
+# Run the app (ensure config files are copied)
 .\OmniNav.exe
 ```
 
-### 2. 导入医学影像
-1. 点击菜单 `File → Open DICOM Folder`（或 `Open NIfTI`）
-2. 选择 DICOM 文件夹或 `.nii/.nii.gz` 文件
-3. 影像自动加载到 DataManager，四视图显示
+### 2. Import Medical Images
+1. Click `File → Open DICOM Folder` (or `Open NIfTI`)
+2. Select a DICOM folder or `.nii/.nii.gz` file
+3. The image loads into DataManager and appears in the four views
 
-### 3. 导航浏览
-- **滚动**：鼠标滚轮或右侧滚动条
-- **十字线**：在任意视图点击，其他视图自动同步到对应切片
-- **窗宽窗位**：右键拖拽或使用工具栏滑块
+### 3. Navigate
+- **Scroll**: mouse wheel or the right-side slider
+- **Crosshair**: click any view to sync the others to the same slice
+- **Window/level**: right-drag or use toolbar sliders
 
-### 4. 导入 3D 模型（如骨骼、器官）
+### 4. Import 3D Models (e.g., bones, organs)
 1. `File → Import Mesh`
-2. 选择 `.stl`/`.obj`/`.ply` 文件
-3. 在 3D 视图显示，可调整透明度、颜色
+2. Select `.stl`/`.obj`/`.ply`
+3. The model appears in the 3D view; adjust opacity and color as needed
 
-### 5. 配置 NDI 光学跟踪
-1. 编辑 `OpticalNavigation_config.json`，设置正确的 `Device_IP`
-2. 启动 NDI 跟踪系统，确保与 PC 网络连通
-3. 在 `OpticalNavigation` 模块点击 `Connect`
-4. 加载工具 ROM 文件（`.rom`）
-5. 工具显示在 3D 视图，实时更新位姿
+### 5. Configure NDI Optical Tracking
+1. Edit `OpticalNavigation_config.json` and set the correct `Device_IP`
+2. Start the NDI system and ensure network connectivity
+3. Click `Connect` in the `OpticalNavigation` module
+4. Load tool ROM files (`.rom`)
+5. Tools appear in the 3D view with real-time pose updates
 
-### 6. 工具注册（Register）
-1. 在影像上放置 fiducial marker（或使用已知 landmark）
-2. 用 NDI 工具采样该点（`Sample` 按钮，多次采样取平均）
-3. 点击 `Register` 计算工具到影像的变换
-4. 注册精度可通过 landmarks 验证
+### 6. Tool Registration
+1. Place fiducial markers in the image (or use known landmarks)
+2. Sample those points with the NDI tool (`Sample` button, multi-frame average)
+3. Click `Register` to compute the tool-to-image transform
+4. Verify registration accuracy using landmarks
 
-### 7. 工具校准（Calibrate）
-1. 将穿刺针固定在已知位置（如校准架）
-2. 采样针尖位置（多个方向）
-3. 点击 `Calibrate` 计算 tool-to-tip 变换
-4. 校准数据保存到 `DataManager`
+### 7. Tool Calibration
+1. Fix the needle in a known pose (e.g., calibration jig)
+2. Sample the tip from multiple directions
+3. Click `Calibrate` to compute the tool-to-tip transform
+4. Calibration data is saved to `DataManager`
 
-### 8. 连接机器人
-1. 编辑 `PunctureRobot_config.json`：
-   - `Device_IP`：UR 机器人 IP
-   - `EndEffectorSerial`：步进电机序列号
-   - `flange2endeffector`： flange 到针尖的变换矩阵
-2. 在 `PunctureRobot` 模块点击 `Connect`
-3. UR 机器人进入远程控制模式
-4. 步进电机初始化
+### 8. Connect the Robot
+1. Edit `PunctureRobot_config.json`:
+   - `Device_IP`: UR robot IP
+   - `EndEffectorSerial`: stepper serial number
+   - `flange2endeffector`: flange-to-tip transform matrix
+2. Click `Connect` in the `PunctureRobot` module
+3. Put the UR robot into remote control mode
+4. Initialize the stepper motor
 
-### 9. 执行穿刺工作流
-1. 在 DataManager 选择目标点（通过 3D 视图或坐标输入）
-2. 在 PunctureRobot 模块设置进给速度、深度
-3. 点击 `Move to Target`：机器人移动到穿刺位姿
-4. 点击 `Start Insertion`：步进电机控制针进给
-5. 实时监控影像与跟踪数据
+### 9. Run the Puncture Workflow
+1. Choose target points in DataManager (3D view or manual coordinates)
+2. Set feed speed and depth in `PunctureRobot`
+3. Click `Move to Target` to move to the puncture pose
+4. Click `Start Insertion` to drive the needle
+5. Monitor imaging and tracking data in real time
 
 ---
 
-## 📂 项目结构
+## 📂 Project Structure
 
 ```
 OmniNav/
-├── CMakeLists.txt                 # 主构建文件
-├── .gitignore                     # Git 忽略规则
-├── README.md                      # 本文档
-├── SRC/                           # 源代码根目录
-│   ├── Base/                      # 主窗口基类与视图管理
-│   │   ├── Base.h/cpp             # 主窗口类，菜单/模块加载
-│   │   ├── Display.h/cpp          # 四视图显示管理
-│   │   └── config.json            # 视图布局与外观配置
-│   ├── Modules/                   # 功能模块
-│   │   ├── BaseModule/            # 模块基类
-│   │   ├── DataManager/           # 数据管理（影像、模型、标定）
-│   │   ├── OpticalNavigation/     # NDI 光学导航
-│   │   ├── ElectromagneticNavigation/  # 电磁导航（预留）
-│   │   └── PunctureRobot/         # 机器人穿刺控制
-│   │       ├── drivers/           # 底层驱动
+├── CMakeLists.txt                 # Main build file
+├── .gitignore                     # Git ignore rules
+├── README.md                      # This document
+├── SRC/                           # Source root
+│   ├── Base/                      # Main window base and view management
+│   │   ├── Base.h/cpp             # Main window class, menu/module loading
+│   │   ├── Display.h/cpp          # Four-view display management
+│   │   └── config.json            # View layout and appearance config
+│   ├── Modules/                   # Functional modules
+│   │   ├── BaseModule/            # Module base class
+│   │   ├── DataManager/           # Data management (images/models/calibration)
+│   │   ├── OpticalNavigation/     # NDI optical navigation
+│   │   ├── ElectromagneticNavigation/  # EM navigation (reserved)
+│   │   └── PunctureRobot/         # Robotic puncture control
+│   │       ├── drivers/           # Low-level drivers
 │   │       │   ├── libs/windows/x86_64/librockmong.lib
 │   │       │   ├── libs/windows/x86_64/rockmong.dll
-│   │       │   └── src/           # 步进电机驱动源码
-│   │       └── config.json        # 机器人 IP、EEF 配置
-│   ├── Item/                      # 数据模型类
-│   │   ├── Image.h/cpp            # 医学影像（ITK/VTK）
-│   │   ├── Model3D.h/cpp          # 三维网格模型
-│   │   ├── Landmark.h/cpp         # 兴趣点
-│   │   ├── Tool.h/cpp             # NDI 工具定义
-│   │   └── OmniTransform.h/cpp    # 坐标变换
-│   ├── IO/                        # I/O 与线程
-│   │   ├── NDIWorker.h/cpp        # NDI 跟踪线程
-│   │   ├── URWorker.h/cpp         # UR 机器人线程
-│   │   └── StepperWorker.h/cpp    # 步进电机线程
-│   ├── CombinedAPI/               # NDI Combined API 封装
-│   │   ├── CombinedApi.h/cpp      # 主 API 类
-│   │   ├── TcpConnection.h/cpp    # TCP 连接
-│   │   ├── ToolData.h/cpp         # 工具数据结构
-│   │   └── ...                    # 其他数据结构
-│   ├── CombinedAPIsample/         # NDI 官方示例库（子模块）
-│   │   ├── library/include/       # 头文件
-│   │   └── library/src/           # 源码
-│   ├── ndicapi/                   # NDI C API（第三方库）
+│   │       │   └── src/           # Stepper driver source
+│   │       └── config.json        # Robot IP and EEF config
+│   ├── Item/                      # Data model classes
+│   │   ├── Image.h/cpp            # Medical images (ITK/VTK)
+│   │   ├── Model3D.h/cpp          # 3D mesh models
+│   │   ├── Landmark.h/cpp         # Landmarks
+│   │   ├── Tool.h/cpp             # NDI tool definitions
+│   │   └── OmniTransform.h/cpp    # Coordinate transforms
+│   ├── IO/                        # I/O and threads
+│   │   ├── NDIWorker.h/cpp        # NDI tracking thread
+│   │   ├── URWorker.h/cpp         # UR robot thread
+│   │   └── StepperWorker.h/cpp    # Stepper motor thread
+│   ├── CombinedAPI/               # NDI Combined API wrapper
+│   │   ├── CombinedApi.h/cpp      # Main API class
+│   │   ├── TcpConnection.h/cpp    # TCP connection
+│   │   ├── ToolData.h/cpp         # Tool data structures
+│   │   └── ...                    # Other data structures
+│   ├── CombinedAPIsample/         # NDI official sample library (submodule)
+│   │   ├── library/include/       # Headers
+│   │   └── library/src/           # Source
+│   ├── ndicapi/                   # NDI C API (third-party)
 │   │   ├── ndicapi.cxx
 │   │   ├── ndicapi_math.cxx
 │   │   ├── ndicapi_serial_win32.cxx
 │   │   └── ndicapi_socket_win32.cxx
 │   ├── NewUrAPI/                  # Universal Robots RTDE API
-│   │   ├── URController.h/cpp     # UR 控制器类
-│   │   ├── RTDEInterface.h/cpp    # RTDE 通信接口
+│   │   ├── URController.h/cpp     # UR controller class
+│   │   ├── RTDEInterface.h/cpp    # RTDE comm interface
 │   │   └── ...
-│   ├── Utils/                     # 工具函数
-│   │   ├── GeometryUtils.h/cpp    # 几何运算（矩阵、向量）
-│   │   ├── VTKUtils.h/cpp         # VTK 辅助函数
+│   ├── Utils/                     # Utilities
+│   │   ├── GeometryUtils.h/cpp    # Geometry utilities (matrices, vectors)
+│   │   ├── VTKUtils.h/cpp         # VTK helpers
 │   │   └── ...
-│   └── bin/                       # 构建输出（自动生成，不提交）
-├── build/                         # 构建目录（不提交）
-├── out/                           # 其他输出（不提交）
-└── docs/                          # 文档（可选）
+│   └── bin/                       # Build output (generated, not committed)
+├── build/                         # Build directory (not committed)
+├── out/                           # Other output (not committed)
+└── docs/                          # Docs (optional)
 ```
 
 ---
 
-## 🔬 模块详解
+## 🔬 Module Details
 
-### DataManager 模块
-- **职责**：集中管理所有数据对象，提供统一的数据共享与持久化
-- **核心类**：
-  - `DataManager`：单例，管理所有 Image、Model3D、Landmark、Tool、OmniTransform
-  - `Image`：封装 ITK 影像数据，提供 VTK 显示管线
-  - `Model3D`：封装 vtkPolyData，支持 STL/OBJ/PLY 导入
-  - `Landmark`：3D 点，可关联到影像坐标或世界坐标
-  - `Tool`：NDI 工具定义（ROM 文件 + 实时位姿）
-  - `OmniTransform`：坐标变换（4x4 矩阵）
-- **信号槽**：数据变化时发射信号，通知 UI 更新
+### DataManager Module
+- **Responsibility**: Central management of all data objects, unified sharing and persistence
+- **Core classes**:
+  - `DataManager`: singleton, manages Image, Model3D, Landmark, Tool, OmniTransform
+  - `Image`: wraps ITK image data and provides VTK display pipeline
+  - `Model3D`: wraps vtkPolyData; supports STL/OBJ/PLY import
+  - `Landmark`: 3D point in image or world space
+  - `Tool`: NDI tool definition (ROM + real-time pose)
+  - `OmniTransform`: coordinate transforms (4x4 matrix)
+- **Signals/slots**: emit signals on data changes to update UI
 
-### OpticalNavigation 模块
-- **职责**：NDI 光学跟踪系统的连接、数据采集、工具管理
-- **核心类**：
-  - `OpticalNavigation`：主模块类，UI 界面
-  - `NDIWorker`：QThread，运行 CombinedApi 循环
-  - `CombinedApi`：NDI Combined API 封装，处理 TCP 通信、数据解析
-- **工作流**：
-  1. `Connect` → 建立 TCP 连接，初始化设备
-  2. `Load ROM` → 读取 `.rom` 文件，加载工具定义
-  3. `Track` → 实时获取 6D 位姿，更新 Tool 对象
-  4. `Sample` → 采集多帧，计算平均位姿（降低噪声）
-  5. `Register` → 使用 sampled points 计算 tool-to-image 变换
-  6. `Calibrate` → 计算 tool-to-tip 变换（针尖偏移）
+### OpticalNavigation Module
+- **Responsibility**: NDI tracking connection, data acquisition, tool management
+- **Core classes**:
+  - `OpticalNavigation`: main module class and UI
+  - `NDIWorker`: QThread running the CombinedApi loop
+  - `CombinedApi`: NDI Combined API wrapper handling TCP and parsing
+- **Workflow**:
+  1. `Connect` → establish TCP, initialize device
+  2. `Load ROM` → load tool definition from `.rom`
+  3. `Track` → get real-time 6D pose, update Tool objects
+  4. `Sample` → multi-frame averaging to reduce noise
+  5. `Register` → compute tool-to-image transform from samples
+  6. `Calibrate` → compute tool-to-tip transform (needle offset)
 
-### PunctureRobot 模块
-- **职责**：UR 机器人与步进电机的联合控制，实现穿刺工作流
-- **核心类**：
-  - `PunctureRobot`：主模块类
-  - `URWorker`：QThread，运行 RTDE 通信
-  - `URController`：UR RTDE 客户端，发送关节/位姿指令，接收状态
-  - `StepperController`：步进电机 USB 驱动（librockmong）
-- **工作流**：
-  1. `Connect` → 连接 UR（RTDE）和步进电机（USB）
-  2. `Set Tool` → 加载 flange-to-EEF 变换，计算针尖位姿
-  3. `Move to Pre-entry` → 机器人移动到穿刺起始点上方
-  4. `Start Insertion` → 步进电机控制针以恒定速度进给
-  5. `Monitor` → 实时显示针位姿、力反馈（如支持）
-  6. `Stop` → 停止进给，机器人退针
+### PunctureRobot Module
+- **Responsibility**: Coordinated control of UR robot and stepper motor for puncture workflow
+- **Core classes**:
+  - `PunctureRobot`: main module class
+  - `URWorker`: QThread for RTDE communication
+  - `URController`: UR RTDE client; sends joint/pose commands and receives status
+  - `StepperController`: stepper motor USB driver (librockmong)
+- **Workflow**:
+  1. `Connect` → connect UR (RTDE) and stepper motor (USB)
+  2. `Set Tool` → load flange-to-EEF transform to compute tip pose
+  3. `Move to Pre-entry` → robot moves above the puncture entry
+  4. `Start Insertion` → stepper drives needle at constant speed
+  5. `Monitor` → real-time pose and force feedback (if supported)
+  6. `Stop` → stop feed and retract
 
-### ElectromagneticNavigation 模块
-- **状态**：预留，当前为空
-- **规划**：集成电磁跟踪系统（如 Ascension 3DG），兼容 NDI 接口
+### ElectromagneticNavigation Module
+- **Status**: reserved, currently empty
+- **Plan**: integrate electromagnetic tracking systems (e.g., Ascension 3DG), compatible with NDI interfaces
 
 ---
 
-## 💾 数据格式支持
+## 💾 Data Format Support
 
-| 格式 | 扩展名 | 读写 | 说明 |
+| Format | Extension | Read/Write | Notes |
 |------|--------|-----|------|
-| **DICOM** | `.dcm` 或文件夹 | ✅ 读 | 使用 ITK GDCM，支持多序列 |
-| **NIfTI** | `.nii`, `.nii.gz` | ✅ 读 | 神经影像常用 |
-| **NRRD** | `.nrrd` | ✅ 读 | 简单 raster 格式 |
-| **MetaImage** | `.mhd`, `.mha` | ✅ 读 | ITK 原生格式 |
-| **STL** | `.stl` | ✅ 读/写 | 三角网格（ASCII/Binary） |
-| **OBJ** | `.obj` | ✅ 读 | Wavefront 格式（支持材质） |
-| **PLY** | `.ply` | ✅ 读 | 多边形文件格式 |
-| **VTK** | `.vtk` | ✅ 读 | VTK 原生格式 |
-| **VTP** | `.vtp` | ✅ 读 | VTK XML 多边形数据 |
-| **G** | `.g` | ✅ 读 | Geomview 格式 |
-| **ROM** | `.rom` | ✅ 读 | NDI 工具定义（Marker 布局） |
-| **JSON** | `.json` | ✅ 读/写 | landmarks、transforms 导出 |
-| **TXT** | `.txt` | ✅ 读 | 信息面板文本显示 |
+| **DICOM** | `.dcm` or folder | ✅ Read | ITK GDCM, multi-series support |
+| **NIfTI** | `.nii`, `.nii.gz` | ✅ Read | Common in neuroimaging |
+| **NRRD** | `.nrrd` | ✅ Read | Simple raster format |
+| **MetaImage** | `.mhd`, `.mha` | ✅ Read | ITK-native format |
+| **STL** | `.stl` | ✅ Read/Write | Triangle meshes (ASCII/Binary) |
+| **OBJ** | `.obj` | ✅ Read | Wavefront (materials supported) |
+| **PLY** | `.ply` | ✅ Read | Polygon file format |
+| **VTK** | `.vtk` | ✅ Read | VTK legacy format |
+| **VTP** | `.vtp` | ✅ Read | VTK XML polydata |
+| **G** | `.g` | ✅ Read | Geomview format |
+| **ROM** | `.rom` | ✅ Read | NDI tool definition (marker layout) |
+| **JSON** | `.json` | ✅ Read/Write | Landmarks and transforms export |
+| **TXT** | `.txt` | ✅ Read | Info panel text |
 
 ---
 
-## 🛠️ 开发指南
+## 🛠️ Development Guide
 
-### 添加新模块
-1. 在 `SRC/Modules/` 创建新目录 `MyNewModule`
-2. 创建 `MyNewModule.h/cpp`，继承 `BaseModule`
-3. 实现 `init()`、`tick()`、`cleanup()` 虚函数
-4. 在 `SRC/Modules/MyNewModule/config.json` 添加配置
-5. 在 `CMakeLists.txt` 添加源文件列表
-6. 在 `OmniNav_config.json` 的 `"modules"` 中添加 `"MyNewModule"`
+### Add a New Module
+1. Create `MyNewModule` under `SRC/Modules/`
+2. Create `MyNewModule.h/cpp` and inherit `BaseModule`
+3. Implement `init()`, `tick()`, and `cleanup()`
+4. Add `SRC/Modules/MyNewModule/config.json`
+5. Add sources to `CMakeLists.txt`
+6. Add `"MyNewModule"` to the `"modules"` list in `OmniNav_config.json`
 
-### 调试技巧
-- **日志**：使用 `spdlog::info()/debug()/error()`，日志输出到控制台和文件
-- **VTK 调试**：设置 `VTK_DEBUG_LEAKS` 环境变量检测内存泄漏
-- **Qt 调试**：使用 `QMessageBox` 或 `qDebug()` 输出
-- **NDI 模拟**：使用 NDI 提供的模拟器（Simulator）测试连接
-- **UR 模拟**：UR 机器人支持仿真模式（Virtual Mode），无需真实硬件
+### Debugging Tips
+- **Logging**: use `spdlog::info()/debug()/error()` (console + file)
+- **VTK debugging**: set `VTK_DEBUG_LEAKS` to detect leaks
+- **Qt debugging**: use `QMessageBox` or `qDebug()`
+- **NDI simulation**: use NDI Simulator to test connectivity
+- **UR simulation**: use Virtual Mode (no physical robot needed)
 
-### 代码风格
-- 缩进：4 空格
-- 命名：类 `CamelCase`，函数/变量 `snake_case`，常量 `UPPER_SNAKE`
-- 头文件保护：`#pragma once`（推荐）或 `#ifndef FILENAME_H`
-- 指针：优先使用 `std::unique_ptr`，其次 `QSharedPointer`
+### Code Style
+- Indentation: 4 spaces
+- Naming: classes `CamelCase`, functions/variables `snake_case`, constants `UPPER_SNAKE`
+- Header guards: `#pragma once` (recommended) or `#ifndef FILENAME_H`
+- Pointers: prefer `std::unique_ptr`, then `QSharedPointer`
 
 ---
 
-## 🐛 故障排除
+## 🐛 Troubleshooting
 
-| 问题 | 可能原因 | 解决方案 |
+| Issue | Possible Cause | Solution |
 |------|----------|----------|
-| **CMake 找不到 Qt/VTK/ITK** | vcpkg 未集成或路径错误 | 运行 `vcpkg integrate install`，检查 `CMAKE_TOOLCHAIN_FILE` |
-| **链接错误：undefined reference** | 库未链接或顺序错误 | 检查 `CMakeLists.txt` 中的 `target_link_libraries` |
-| **运行时 DLL 缺失** | 构建时未拷贝 DLL | 确保 `vcpkg` 的 `bin/` 在 PATH 或手动拷贝 |
-| **NDI 连接失败** | IP 错误、防火墙、设备离线 | 检查 `OpticalNavigation_config.json`，ping 设备 IP |
-| **UR 连接超时** | IP 错误、RTDE 未启用 | 在 UR 示教器启用 RTDE，检查 `PunctureRobot_config.json` |
-| **影像不显示** | DICOM 损坏、ITK 无法读取 | 尝试 NIfTI 格式，检查文件完整性 |
-| **3D 视图黑屏** | GPU 驱动旧、OpenGL 版本低 | 更新显卡驱动，确保支持 OpenGL 3.2+ |
-| **十字线不同步** | 影像方向矩阵错误 | 检查 `DataManager_config.json` 中的 `matrices` |
-| **步进电机不响应** | USB 驱动未安装、序列号错误 | 安装 librockmong 驱动，检查 `EndEffectorSerial` |
+| **CMake cannot find Qt/VTK/ITK** | vcpkg not integrated or wrong path | Run `vcpkg integrate install`, check `CMAKE_TOOLCHAIN_FILE` |
+| **Linker error: undefined reference** | Missing libs or wrong order | Check `target_link_libraries` in `CMakeLists.txt` |
+| **Missing DLLs at runtime** | DLLs not copied | Ensure vcpkg `bin/` is in PATH or copy manually |
+| **NDI connection failed** | Wrong IP, firewall, device offline | Check `OpticalNavigation_config.json`, ping device IP |
+| **UR connection timeout** | Wrong IP, RTDE disabled | Enable RTDE on the UR teach pendant, check `PunctureRobot_config.json` |
+| **Image not displayed** | Corrupt DICOM or ITK read failure | Try NIfTI and verify file integrity |
+| **3D view black** | Old GPU driver or low OpenGL | Update driver, ensure OpenGL 3.2+ |
+| **Crosshair desync** | Incorrect direction matrices | Check `matrices` in `DataManager_config.json` |
+| **Stepper not responding** | USB driver missing or wrong serial | Install librockmong driver, verify `EndEffectorSerial` |
 
 ---
 
-## ✅ 测试与验证
+## ✅ Testing and Validation
 
-### 单元测试（建议）
+### Unit Tests (Suggested)
 ```bash
-# 使用 Google Test 或 Catch2
+# Use Google Test or Catch2
 mkdir build-test && cd build-test
 cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON ..
 cmake --build . --config Debug
 ctest -C Debug
 ```
 
-### 集成测试
-1. **数据加载测试**：加载 DICOM、NIfTI、STL，检查渲染
-2. **NDI 模拟测试**：使用 NDI Simulator，验证跟踪稳定性
-3. **UR 仿真测试**：UR 机器人 Virtual Mode，验证运动规划
-4. **穿刺工作流测试**：完整流程，从注册到执行
+### Integration Tests
+1. **Data loading**: load DICOM, NIfTI, STL and verify rendering
+2. **NDI simulation**: use NDI Simulator to validate tracking stability
+3. **UR simulation**: UR Virtual Mode for motion planning
+4. **Puncture workflow**: end-to-end from registration to execution
 
-### 性能基准
-- **帧率**：3D 视图 ≥ 30 FPS（带模型）
-- **延迟**：NDI 数据到 UI 更新 ≤ 50 ms
-- **内存**：加载 512x512x300 CT 影像 ≤ 2 GB
+### Performance Benchmarks
+- **FPS**: 3D view ≥ 30 FPS (with models)
+- **Latency**: NDI data to UI update ≤ 50 ms
+- **Memory**: 512x512x300 CT image ≤ 2 GB
 
 ---
 
-## 🤝 贡献指南
+## 🤝 Contributing
 
-欢迎贡献！请遵循以下流程：
+Contributions are welcome. Please follow this process:
 
-1. **Fork 本仓库**
-2. **创建特性分支**：
+1. **Fork this repo**
+2. **Create a feature branch**:
    ```bash
    git checkout -b feature/AmazingFeature
    ```
-3. **提交更改**：
+3. **Commit changes**:
    ```bash
    git commit -m "Add AmazingFeature"
    ```
-4. **推送到分支**：
+4. **Push your branch**:
    ```bash
    git push origin feature/AmazingFeature
    ```
-5. **开启 Pull Request**，描述：
-   - 解决了什么问题
-   - 如何测试
-   - 是否有 breaking changes
+5. **Open a Pull Request**, include:
+   - What problem it solves
+   - How to test
+   - Any breaking changes
 
-### 代码规范
-- 遵循现有代码风格
-- 添加新文件时更新 `CMakeLists.txt`
-- 修改配置时更新文档
-- 提交前运行 `git status` 确认无多余文件
+### Code Guidelines
+- Follow the existing code style
+- Update `CMakeLists.txt` when adding files
+- Update documentation when configs change
+- Run `git status` before committing to avoid extra files
 
 ---
 
-## 📄 许可证
+## 📄 License
 
-**本项目目前未包含 LICENSE 文件。**
+**This project currently does not include a LICENSE file.**
 
-建议添加 MIT 许可证以促进开源协作：
+It is recommended to add the MIT license for open-source collaboration:
 ```bash
-# 下载 MIT 模板
+# Download MIT template
 curl -o LICENSE https://opensource.org/license/mit
 git add LICENSE
 git commit -m "Add MIT License"
@@ -659,38 +660,38 @@ git commit -m "Add MIT License"
 
 ---
 
-## 📚 参考文献
+## 📚 References
 
-- **VTK 官方文档**：https://vtk.org/doc/
-- **ITK 官方文档**：https://itk.org/ITKSoftwareGuide/html/
-- **Qt 官方文档**：https://doc.qt.io/
-- **NDI Combined API 指南**：https://www.ndigital.com/developers/
-- **Universal Robots RTDE 手册**：https://www.universal-robots.com/download/
-- **DICOM 标准**：https://www.dicomstandard.org/
-
----
-
-## 📧 联系方式
-
-- **作者**：Haitao-Lee
-- **GitHub Issues**：https://github.com/Haitao-Lee/OmniNav/issues
-- **邮件**：hunter_lee163@163.com
+- **VTK Documentation**: https://vtk.org/doc/
+- **ITK Documentation**: https://itk.org/ITKSoftwareGuide/html/
+- **Qt Documentation**: https://doc.qt.io/
+- **NDI Combined API Guide**: https://www.ndigital.com/developers/
+- **Universal Robots RTDE Manual**: https://www.universal-robots.com/download/
+- **DICOM Standard**: https://www.dicomstandard.org/
 
 ---
 
-## 🎉 致谢
+## 📧 Contact
 
-- NDI（Northern Digital Inc.）提供 Combined API 支持
-- Universal Robots 提供 RTDE 协议文档
-- VTK/ITK 开源社区
-- Qt 框架
-
----
-
-**最后更新时间**：2026-03-14  
-**文档版本**：1.0.0  
-**项目版本**：0.1.0
+- **Author**: Haitao-Lee
+- **GitHub Issues**: https://github.com/Haitao-Lee/OmniNav/issues
+- **Email**: hunter_lee163@163.com
 
 ---
 
-*OmniNav — 让医疗影像导航更精准、更智能*
+## 🎉 Acknowledgements
+
+- NDI (Northern Digital Inc.) for Combined API support
+- Universal Robots for RTDE protocol documentation
+- VTK/ITK open-source community
+- Qt framework
+
+---
+
+**Last updated**: 2026-03-14  
+**Doc version**: 1.0.0  
+**Project version**: 0.1.0
+
+---
+
+*OmniNav — making medical image navigation more precise and intelligent*

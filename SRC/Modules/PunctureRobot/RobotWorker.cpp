@@ -168,9 +168,9 @@ void RobotWorker::onControlLoop()
                 emit logMessage(QString("   DISTANCE: %1 mm").arg(distM * 1000.0, 0, 'f', 2));
                 emit logMessage(QString("--------------------------------------------------"));
 
-                // [Optional] Software limit protection: if the distance is too far (e.g., > 30 cm), block movement.
-                if (distM > 0.50) {
-                    emit logMessage("Worker SAFETY STOP: Distance too large (>30cm)! Command Ignored.");
+                // [Optional] Software limit protection: if the distance is too far (e.g., > 150 cm), block movement.
+                if (distM > 1.50) {
+                    emit logMessage("Worker SAFETY STOP: Distance too large (>150cm)! Command Ignored.");
                     return; 
                 }
             }

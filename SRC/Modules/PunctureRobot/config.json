@@ -1,5 +1,10 @@
 {
   "Device_IP": "192.168.1.15",
   "EndEffectorSerial":"590422944",
-  "flange2endeffector":"1, 0, 0, 0, 0, 1, 0, 0.1875, 0, 0, 1, 0.1475, 0, 0, 0, 1"
+  "flange2endeffector":"1, 0, 0, 0, 0, 1, 0, 0.3075, 0, 0, 1, 0.1505, 0, 0, 0, 1",
+  "ApproachDistance_mm": 300.0,
+  "MotionTolerance_mm": 2.0,
+  "NeedleVelInsert_mm_s": 15.0,
+  "NeedleVelRetract_mm_s": 5.0,
+  "SafetyMargin_mm": 2.0
 }

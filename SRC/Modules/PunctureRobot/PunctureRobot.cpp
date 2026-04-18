@@ -468,7 +468,10 @@ void PunctureRobot::on_URAction_btn_clicked() {
 
     // Record trajectory for viz
     emit reqAdd3DTrajectory(pEntryW_mm.data(), pTargetW_mm.data(), m_trajectoryPointsetName);
-    
+    // Eigen::Vector3d pApproachW_mm = pApproachW_m * 1000.0;
+    // Eigen::Vector3d pReadyW_mm    = pReadyW_m * 1000.0;
+    // emit reqAdd3DTrajectory(pApproachW_mm.data(), pReadyW_mm.data(), "test_traj");
+
     // Send 1st Command (Approach)
     emit reqUpdateTargetPose(m_targetApproach.x(), m_targetApproach.y(), m_targetApproach.z(),
                              m_targetRotVec.x(), m_targetRotVec.y(), m_targetRotVec.z(), 0.0);

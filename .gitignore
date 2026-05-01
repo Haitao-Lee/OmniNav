@@ -60,6 +60,17 @@ Makefile
 # Temporary backup for nested git (local only)
 .git_backup/
 
+# Large data directories (use Git LFS or download separately)
+HeadNeckPhantom/
+exp_slice_man0128/
+
+# Duplicate nested source copy
+SRC/OmniNav/
+
+# Claude Code temp
+.claude/
+.temp_skills_repo/
+
 # Sample build/docs outputs inside SRC
 SRC/CombinedAPIsample/bin/
 SRC/CombinedAPIsample/build/

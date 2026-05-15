@@ -6,6 +6,8 @@
 #include <QTableWidgetItem>
 #include <QColor>
 #include <QHash>
+#include <QDir>
+#include <QStringList>
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkLookupTable.h>
@@ -30,6 +32,7 @@ public:
         return ui.centralwidget;
     };
     void importFiles(const QString& specificType = "");
+    void importFolder();
 
     const QJsonObject& getConfig() const { return m_config; }
     QSplitter* getVSplitter() const { return m_vsplitter; }
@@ -109,6 +112,8 @@ signals:
     void signalAddOmniTransform(OmniTransform* transform);
     void signalDeleteOmniTransform(OmniTransform* transform);
     void signalChangeVolumeVisualState(bool state);
+    void signalMeasureToggled(bool on);
+    void signalProjectToggled(bool on);
 
 private:
     Ui::DataManagerClass ui;
@@ -157,6 +162,10 @@ private:
     void loadConfig() override;
     void updateProperty();
 
+    void scanDirectory(const QDir& dir, QStringList& images, QStringList& models,
+                       QStringList& landmarks, QStringList& transforms, QStringList& tools);
+    bool isDicomDirectory(const QDir& dir);
+
 private slots:
     void onAddImage();
     void onDeleteImage();
@@ -193,6 +202,13 @@ private slots:
 
     void onTop3DColorBtnClicked();
     void onBottom3DColorBtnClicked();
-    void onImageTableDoubleClicked(QTableWidgetItem* item); 
+    void onImageTableDoubleClicked(QTableWidgetItem* item);
     void onVolumeCboxChanged(bool state);
+
+    void onMeasureToggled(bool checked);
+    void onVolumeCalculation();
+    void onProjectToggled(bool checked);
+
+public:
+    void receiveMeasurePoint(double x, double y, double z);
 };

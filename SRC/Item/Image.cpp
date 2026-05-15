@@ -442,18 +442,13 @@ void Image::adjustActors(double current_center[3])
             {
                 vtkSmartPointer<vtkMatrix4x4> newMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
                 newMatrix->DeepCopy(matrix);
-                
-                int axisIndex = (2 - i) % 3;
-                double origin[3] = {0.0, 0.0, 0.0};
-                origin[0] = matrix->GetElement(0, 3);
-                origin[1] = matrix->GetElement(1, 3);
-                origin[2] = matrix->GetElement(2, 3);
-                
-                origin[axisIndex] = current_center[axisIndex];
 
-                newMatrix->SetElement(0, 3, origin[0]);
-                newMatrix->SetElement(1, 3, origin[1]);
-                newMatrix->SetElement(2, 3, origin[2]);
+                // Only update the component perpendicular to the slicing plane.
+                // Axial (i=0): update Z (axisIndex=2)
+                // Coronal (i=1): update Y (axisIndex=1)
+                // Sagittal (i=2): update X (axisIndex=0)
+                int axisIndex = (2 - i) % 3;
+                newMatrix->SetElement(axisIndex, 3, current_center[axisIndex]);
 
                 m_reslices[i]->SetResliceAxes(newMatrix);
             }

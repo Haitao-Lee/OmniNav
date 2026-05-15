@@ -6,14 +6,28 @@
 #include <QJsonObject>
 #include <QDebug>
 #include <QFile>
+#include <QFileInfo>
+#include <QDir>
+#include <QDirIterator>
 #include <QCoreApplication>
-#include <QRegularExpression> 
+#include <QRegularExpression>
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QColorDialog>
 #include <QListView>
 #include <vtkNIFTIImageWriter.h>
 #include <vtkMetaImageWriter.h>
+#include <vtkSphereSource.h>
+#include <vtkLineSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkActor.h>
+#include <vtkMassProperties.h>
+#include <vtkPlane.h>
+#include <vtkPlaneCutter.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkCompositePolyDataMapper.h>
+#include "GeometryUtils.h"
 #include <vtksys/SystemTools.hxx>
 #include <vtkSTLWriter.h>
 #include <vtkOBJWriter.h>
@@ -126,6 +140,21 @@ void DataManager::initButton()
     applyTheme(ui.measure_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.volume_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.project_btn, textBaseStyle, pressedGreen, true);
+
+    // Add checked state style for toggle buttons (measure, project).
+    const QString checkedStyle =
+        "QPushButton:checked{"
+        "background-color:rgba(46,204,113,255);"
+        "border-style:outset;"
+        "border-width:1px;"
+        "border-radius:20px;"
+        "border-color:rgba(255,255,255,50);"
+        "color:white;"
+        "padding:6px;"
+        "}";
+
+    ui.measure_btn->setStyleSheet(ui.measure_btn->styleSheet() + checkedStyle);
+    ui.project_btn->setStyleSheet(ui.project_btn->styleSheet() + checkedStyle);
 
     applyTheme(ui.callibration_btn, textBaseStyle, pressedDark, true);
     applyTheme(ui.robotics_btn, textBaseStyle, pressedDark, true);
@@ -585,6 +614,10 @@ void DataManager::createActions()
 
     connect(ui.color3D_btn_top, &QPushButton::clicked, this, &DataManager::onTop3DColorBtnClicked);
     connect(ui.color3D_btn_bot, &QPushButton::clicked, this, &DataManager::onBottom3DColorBtnClicked);
+
+    connect(ui.measure_btn, &QPushButton::toggled, this, &DataManager::onMeasureToggled);
+    connect(ui.volume_btn, &QPushButton::clicked, this, &DataManager::onVolumeCalculation);
+    connect(ui.project_btn, &QPushButton::toggled, this, &DataManager::onProjectToggled);
 
     connect(ui.image_tw, &QTableWidget::itemDoubleClicked, this, &DataManager::onImageTableDoubleClicked);
 
@@ -2570,9 +2603,81 @@ void DataManager::onVolumeCboxChanged(bool state)
     emit signalChangeVolumeVisualState(state);
 }
 
+// ============================================================
+// Measure: 3D distance measurement (toggle on/off)
+// ============================================================
+void DataManager::onMeasureToggled(bool checked)
+{
+    emit signalMeasureToggled(checked);
+}
+
+void DataManager::receiveMeasurePoint(double x, double y, double z)
+{
+    // This is called by OmniNav when a right-click is picked in the 3D view.
+    // DataManager only logs the result — the actors are managed by OmniNav.
+    static int measureSign = 0;
+    static double pos0[3] = {0, 0, 0};
+    static double pos1[3] = {0, 0, 0};
+
+    if (measureSign == 0) {
+        pos0[0] = x; pos0[1] = y; pos0[2] = z;
+    } else {
+        pos1[0] = x; pos1[1] = y; pos1[2] = z;
+    }
+    measureSign = (measureSign + 1) % 2;
+
+    // When both points are set, calculate and display distance.
+    double dx = pos1[0] - pos0[0];
+    double dy = pos1[1] - pos0[1];
+    double dz = pos1[2] - pos0[2];
+    double dist = std::sqrt(dx * dx + dy * dy + dz * dz);
+
+    printInfo(QString("Point %1: [%2, %3, %4]")
+              .arg(measureSign == 0 ? "B" : "A")
+              .arg(x, 0, 'f', 2)
+              .arg(y, 0, 'f', 2)
+              .arg(z, 0, 'f', 2));
+
+    if (measureSign == 0) {
+        printInfo(QString("Distance: %1 mm").arg(dist, 0, 'f', 3));
+    }
+}
+
+// ============================================================
+// Volume: calculate volume of the selected mesh
+// ============================================================
+void DataManager::onVolumeCalculation()
+{
+    int currentRow = ui.mesh_tw->currentRow();
+    if (currentRow < 0 || currentRow >= (int)m_meshes.size()) {
+        printInfo("Volume: Please select a mesh first.");
+        return;
+    }
+
+    Model3D* mesh = m_meshes[currentRow];
+    if (!mesh || !mesh->getPolydata()) {
+        printInfo("Volume: Selected mesh has no data.");
+        return;
+    }
+
+    double volume = GeometryUtils::volumeOfMesh(mesh->getPolydata());
+    printInfo(QString("Volume of \"%1\": %2 mm%3")
+              .arg(QString::fromStdString(mesh->getName()))
+              .arg(volume, 0, 'f', 3)
+              .arg(QChar(0x00B3))); // Unicode superscript 3
+}
+
+// ============================================================
+// Project: toggle 2D projection of 3D meshes onto slice views
+// ============================================================
+void DataManager::onProjectToggled(bool checked)
+{
+    emit signalProjectToggled(checked);
+}
+
 void DataManager::importFiles(const QString& specificType)
 {
-    QString filter = "All Files (*)";
+    QString filter = "All Supported Files (*.stl *.obj *.ply *.vtk *.vtp *.g *.json *.nii *.nii.gz *.nrrd *.mhd *.mha *.dcm *.rom *.txt);;All Files (*)";
     if (!specificType.isEmpty()) {
         filter = QString("%1 (*.%2);;All Files (*)").arg(specificType.toUpper(), specificType.toLower());
     }
@@ -2603,6 +2708,9 @@ void DataManager::importFiles(const QString& specificType)
     else if (extension == "nii" || extension == "gz" || extension == "nrrd" || extension == "mhd" || extension == "mha" || extension == "dcm") {
         success = addImage(stdPath);
     }
+    else if (extension == "rom") {
+        success = addTool(fileName);
+    }
     else if (extension == "txt") {
         QFile file(fileName);
         if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -2625,4 +2733,207 @@ void DataManager::importFiles(const QString& specificType)
     } else {
         printInfo("Failed to import file: " + QString::fromStdString(stdPath));
     }
+}
+
+// ============================================================
+// importFolder: recursively scan a directory and auto-import
+// ============================================================
+
+bool DataManager::isDicomDirectory(const QDir& dir)
+{
+    QStringList nameFilters;
+    nameFilters << "*.dcm" << "*.DCM" << "*.ima" << "*.IMA";
+    return !dir.entryInfoList(nameFilters, QDir::Files).isEmpty();
+}
+
+void DataManager::scanDirectory(const QDir& dir, QStringList& images, QStringList& models,
+                                 QStringList& landmarks, QStringList& transforms, QStringList& tools)
+{
+    // Step 1: Check if this directory itself is a DICOM directory.
+    // If so, treat the whole directory as one image and do NOT recurse into it.
+    // This prevents loading individual .dcm slices separately.
+    if (isDicomDirectory(dir)) {
+        images.append(dir.absolutePath());
+        return;
+    }
+
+    // Step 2: Check if this directory contains DICOM sub-directories (multi-series case).
+    // Example: PatientData/ has sub-folders Series001/, Series002/, each with .dcm files.
+    bool hasDicomSubDirs = false;
+    QDirIterator subDirIt(dir.path(), QDir::Dirs | QDir::NoDotAndDotDot);
+    while (subDirIt.hasNext()) {
+        QDir subDir(subDirIt.next());
+        if (isDicomDirectory(subDir)) {
+            hasDicomSubDirs = true;
+            images.append(subDir.absolutePath());
+        }
+    }
+
+    // If we found DICOM sub-directories, still recurse into non-DICOM sub-directories
+    // but skip the DICOM ones (they're already added as images).
+
+    // Step 3: Collect files in current directory by extension.
+    QFileInfoList fileInfoList = dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
+    for (const QFileInfo& fileInfo : fileInfoList) {
+        QString ext = fileInfo.suffix().toLower();
+        QString absolutePath = fileInfo.absoluteFilePath();
+
+        if (ext == "stl" || ext == "obj" || ext == "ply" ||
+            ext == "vtk" || ext == "vtp" || ext == "g") {
+            models.append(absolutePath);
+        }
+        else if (ext == "json") {
+            // Distinguish Landmark vs Transform by reading the JSON root key.
+            QFile file(absolutePath);
+            if (file.open(QIODevice::ReadOnly)) {
+                QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+                file.close();
+                if (doc.isObject()) {
+                    QJsonObject root = doc.object();
+                    if (root.contains("Landmark")) {
+                        landmarks.append(absolutePath);
+                    }
+                    if (root.contains("Transform")) {
+                        transforms.append(absolutePath);
+                    }
+                }
+            }
+        }
+        else if (ext == "nii" || ext == "gz" || ext == "nrrd" ||
+                 ext == "mhd" || ext == "mha") {
+            images.append(absolutePath);
+        }
+        else if (ext == "rom") {
+            tools.append(absolutePath);
+        }
+        // .dcm / .ima files at this level are handled by isDicomDirectory() above.
+        // .txt and other types are silently skipped.
+    }
+
+    // Step 4: Recurse into sub-directories (skip DICOM sub-dirs already handled).
+    QDirIterator dirIt(dir.path(), QDir::Dirs | QDir::NoDotAndDotDot);
+    while (dirIt.hasNext()) {
+        QDir subDir(dirIt.next());
+        // Skip if this sub-dir was already added as a DICOM image.
+        if (hasDicomSubDirs && isDicomDirectory(subDir)) {
+            continue;
+        }
+        scanDirectory(subDir, images, models, landmarks, transforms, tools);
+    }
+}
+
+void DataManager::importFolder()
+{
+    QString dirPath = QFileDialog::getExistingDirectory(
+        this,
+        "Select Folder to Import",
+        QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+    );
+
+    if (dirPath.isEmpty()) {
+        printInfo("Folder import canceled.");
+        return;
+    }
+
+    printInfo("Scanning folder: " + dirPath + " ...");
+    QCoreApplication::processEvents();
+
+    // Collect all files by category.
+    QStringList imagePaths, modelPaths, landmarkPaths, transformPaths, toolPaths;
+    QDir rootDir(dirPath);
+    scanDirectory(rootDir, imagePaths, modelPaths, landmarkPaths, transformPaths, toolPaths);
+
+    int totalCount = imagePaths.size() + modelPaths.size() + landmarkPaths.size()
+                   + transformPaths.size() + toolPaths.size();
+
+    if (totalCount == 0) {
+        printInfo("No supported files found in: " + dirPath);
+        return;
+    }
+
+    printInfo(QString("Found %1 file(s). Importing...").arg(totalCount));
+    QCoreApplication::processEvents();
+
+    int successCount = 0;
+    int failCount = 0;
+
+    // Import in order: Images first (establish coordinate system), then models,
+    // landmarks, transforms, and finally tools.
+
+    // --- Images ---
+    for (const QString& path : imagePaths) {
+        QFileInfo fi(path);
+        QString displayName = fi.isDir() ? fi.fileName() : fi.fileName();
+        if (addImage(path.toStdString())) {
+            successCount++;
+            printInfo("[Image] Loaded: " + displayName);
+        } else {
+            failCount++;
+            printInfo("[Image] FAILED: " + displayName);
+        }
+        QCoreApplication::processEvents();
+    }
+
+    // --- 3D Models ---
+    for (const QString& path : modelPaths) {
+        QFileInfo fi(path);
+        if (add3Dmodel(path.toStdString())) {
+            successCount++;
+            printInfo("[Model] Loaded: " + fi.fileName());
+        } else {
+            failCount++;
+            printInfo("[Model] FAILED: " + fi.fileName());
+        }
+        QCoreApplication::processEvents();
+    }
+
+    // --- Landmarks ---
+    for (const QString& path : landmarkPaths) {
+        QFileInfo fi(path);
+        if (loadLandmark(path.toStdString())) {
+            successCount++;
+            printInfo("[Landmark] Loaded: " + fi.fileName());
+        } else {
+            failCount++;
+            printInfo("[Landmark] FAILED: " + fi.fileName());
+        }
+        QCoreApplication::processEvents();
+    }
+
+    // --- Transforms ---
+    for (const QString& path : transformPaths) {
+        QFileInfo fi(path);
+        if (loadOmniTransform(path.toStdString())) {
+            successCount++;
+            printInfo("[Transform] Loaded: " + fi.fileName());
+        } else {
+            failCount++;
+            printInfo("[Transform] FAILED: " + fi.fileName());
+        }
+        QCoreApplication::processEvents();
+    }
+
+    // --- Tools ---
+    for (const QString& path : toolPaths) {
+        QFileInfo fi(path);
+        if (addTool(path)) {
+            successCount++;
+            printInfo("[Tool] Loaded: " + fi.fileName());
+        } else {
+            failCount++;
+            printInfo("[Tool] FAILED: " + fi.fileName());
+        }
+        QCoreApplication::processEvents();
+    }
+
+    // --- Summary ---
+    printInfo("-------------------------------------------------------");
+    QString summary = QString("Folder import complete: %1 succeeded, %2 failed\n"
+                              "  Images: %3  Models: %4  Landmarks: %5  Transforms: %6  Tools: %7")
+                      .arg(successCount).arg(failCount)
+                      .arg(imagePaths.size()).arg(modelPaths.size())
+                      .arg(landmarkPaths.size()).arg(transformPaths.size())
+                      .arg(toolPaths.size());
+    printInfo(summary);
 }

@@ -305,11 +305,11 @@ image: url(:/DataManager/measure.png);</string>
              </font>
             </property>
             <property name="toolTip">
-             <string>measure</string>
+             <string>Measure distance between two points (right-click in 3D view)</string>
             </property>
             <property name="styleSheet">
              <string notr="true">background-color: rgb(120, 120, 120);
-image: url(:/DataManager/slice.png);</string>
+image: url(:/DataManager/measure.png);</string>
             </property>
             <property name="text">
              <string/>
@@ -336,11 +336,11 @@ image: url(:/DataManager/slice.png);</string>
              </font>
             </property>
             <property name="toolTip">
-             <string>volume calculation of meshes</string>
+             <string>Calculate volume of selected mesh</string>
             </property>
             <property name="styleSheet">
              <string notr="true">background-color: rgb(120, 120, 120);
-image: url(:/DataManager/reset1.png);</string>
+image: url(:/DataManager/3D.png);</string>
             </property>
             <property name="text">
              <string/>
@@ -364,11 +364,11 @@ image: url(:/DataManager/reset1.png);</string>
              </font>
             </property>
             <property name="toolTip">
-             <string>projection</string>
+             <string>Toggle 2D projection of 3D meshes onto slice views</string>
             </property>
             <property name="styleSheet">
              <string notr="true">background-color: rgb(120, 120, 120);
-image: url(:/DataManager/visible.png);</string>
+image: url(:/DataManager/slice.png);</string>
             </property>
             <property name="text">
              <string/>

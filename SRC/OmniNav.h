@@ -10,7 +10,10 @@
 #include "Base/Base.h"
 #include "BaseModule.h"
 #include "DataManager.h" 
-#include "OpticalNavigation.h" 
+#include "OpticalNavigation.h"
+
+class vtkPlane;
+class vtkCutter;
 
 class OmniNav : public Base
 {
@@ -36,10 +39,33 @@ public:
 
 private:
     QJsonObject m_config;
-    std::unordered_map<QString, std::shared_ptr<BaseModule>> m_Modules;   
+    std::unordered_map<QString, std::shared_ptr<BaseModule>> m_Modules;
     void loadConfig();
     void addModule();
     void createActions();
+
+    // Measure state
+    bool m_measureActive = false;
+    int m_measureSign = 0;
+    double m_measurePos[2][3] = {{0,0,0},{0,0,0}};
+    vtkSmartPointer<vtkActor> m_measureActors[2];
+    vtkSmartPointer<vtkActor> m_measureLineActor;
+
+    // Project state
+    bool m_projectActive = false;
+    struct ProjectPipeline {
+        vtkSmartPointer<vtkPlane> plane;
+        vtkSmartPointer<vtkCutter> cutter;
+        vtkSmartPointer<vtkActor> actor;
+        int contourRendererIdx;  // 0=Axial, 2=Coronal, 3=Sagittal
+        int normalAxis;          // 0=X(Sagittal), 1=Y(Coronal), 2=Z(Axial)
+    };
+    std::vector<ProjectPipeline> m_projectPipelines;
+
+    void initProjectPipelines();
+    void clearProjectPipelines();
+    void updateProjectSlice();
+    void renderContourViews();
     void updateSliceByLeftClicking0(vtkObject* caller, unsigned long eventId, void* callData);
     void updateSliceByLeftClicking1(vtkObject* caller, unsigned long eventId, void* callData);
     void updateSliceByRightClicking1(vtkObject* caller, unsigned long eventId, void* callData);
@@ -66,5 +92,13 @@ private slots:
     void onUpdateInfo2PunctureRobot();
     void onUpdateNavigationInfo2DataManager(const QVector<TrackedTool>& tools);
     void onOpenFiles();
+    void onOpenFolder();
     void onStopTracking();
+
+    // Measure
+    void onMeasureToggled(bool on);
+    void updateMeasurePoint(double x, double y, double z);
+
+    // Project
+    void onProjectToggled(bool on);
 };

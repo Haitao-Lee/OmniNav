@@ -17,6 +17,17 @@
 #include <vtkMatrix4x4.h>
 #include "VisualizationUtils.h"
 #include <vtkSTLWriter.h>
+#include <vtkSphereSource.h>
+#include <vtkLineSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkActor.h>
+#include <vtkCellPicker.h>
+#include <vtkPlane.h>
+#include <vtkCutter.h>
+#include <vtkCompositePolyDataMapper.h>
+#include "GeometryUtils.h"
+#include <cmath>
 
 OmniNav::OmniNav()
 {
@@ -156,6 +167,7 @@ void OmniNav::createActions()
 {
     connect(ui.modules_cbb, &QComboBox::currentTextChanged, this, &OmniNav::onModuleSelectionChanged);
     connect(ui.file_btn, &QPushButton::clicked, this, &OmniNav::onOpenFiles);
+    connect(ui.folder_btn, &QPushButton::clicked, this, &OmniNav::onOpenFolder);
 
     connect(m_uiDisplays[0]->getUi().scrollbar, &QSlider::valueChanged, this, [this](int value) { this->onUpdateSlice(0); });
     connect(m_uiDisplays[1]->getUi().scrollbar, &QSlider::valueChanged, this, &OmniNav::onUpdate3DOpacity);
@@ -222,6 +234,8 @@ void OmniNav::createActions()
         connect(dataManager.get(), &DataManager::signalAddOmniTransform, this, &OmniNav::onAddTransform);
         connect(dataManager.get(), &DataManager::signalDeleteOmniTransform, this, &OmniNav::onDeleteTransform);
         connect(dataManager.get(), &DataManager::signalChangeVolumeVisualState, this, &OmniNav::onChangeVolumeVisualState);
+        connect(dataManager.get(), &DataManager::signalMeasureToggled, this, &OmniNav::onMeasureToggled);
+        connect(dataManager.get(), &DataManager::signalProjectToggled, this, &OmniNav::onProjectToggled);
     }
 
     auto opticalNavigation = getModule<OpticalNavigation>();
@@ -436,6 +450,14 @@ void OmniNav::onOpenFiles()
     }
 }
 
+void OmniNav::onOpenFolder()
+{
+    auto dataManager = getModule<DataManager>();
+    if (dataManager) {
+        dataManager->importFolder();
+    }
+}
+
 
 void OmniNav::on3DColorChanged(QColor top, QColor bottom)
 {
@@ -518,9 +540,14 @@ void OmniNav::onAddImage(Image* dicom, int row, int last)
             }
         } else {
             QCoreApplication::processEvents();
-            m_uiDisplays[i]->getUi().scrollbar->setMaximum(extent_range[i]);
+            // Swap scrollbar[2] and [3] max values to match onUpdateSlice mapping:
+            // scrollbar[2] controls Y → needs Y range; scrollbar[3] controls X → needs X range.
+            int maxVal = extent_range[i];
+            if (i == 2) maxVal = extent_range[3];  // scrollbar[2] gets Y range
+            if (i == 3) maxVal = extent_range[2];  // scrollbar[3] gets X range
+            m_uiDisplays[i]->getUi().scrollbar->setMaximum(maxVal);
             QCoreApplication::processEvents();
-            m_uiDisplays[i]->getUi().scrollbar->setValue(extent_range[i] / 2);
+            m_uiDisplays[i]->getUi().scrollbar->setValue(maxVal / 2);
             QCoreApplication::processEvents();
             m_renderers[i]->AddViewProp(currentActors[i]);
             QCoreApplication::processEvents();
@@ -530,8 +557,8 @@ void OmniNav::onAddImage(Image* dicom, int row, int last)
 
     double tmp_lineCenter[3] = {0.0, 0.0, 0.0};
     tmp_lineCenter[2] = spacing[2] * (m_uiDisplays[0]->getUi().scrollbar->value() + extent[4]) + origin[2];
-    tmp_lineCenter[0] = spacing[0] * (m_uiDisplays[2]->getUi().scrollbar->value() + extent[0]) + origin[0];
-    tmp_lineCenter[1] = spacing[1] * (m_uiDisplays[3]->getUi().scrollbar->value() + extent[2]) + origin[1];
+    tmp_lineCenter[0] = spacing[0] * (m_uiDisplays[3]->getUi().scrollbar->value() + extent[0]) + origin[0];
+    tmp_lineCenter[1] = spacing[1] * (m_uiDisplays[2]->getUi().scrollbar->value() + extent[2]) + origin[1];
 
     double diff[3];
     diff[0] = tmp_lineCenter[0] - m_lineCenter[0];
@@ -1012,6 +1039,394 @@ void OmniNav::onStopTracking()
     table->blockSignals(false);
 }
 
+// ============================================================
+// Measure: 3D distance measurement
+// ============================================================
+void OmniNav::onMeasureToggled(bool on)
+{
+    m_measureActive = on;
+    m_measureSign = 0;
+
+    auto renderers = getRenderers();
+    if (renderers.size() < 2 || !renderers[1]) return;
+
+    if (on) {
+        // Create two sphere actors at origin.
+        for (int i = 0; i < 2; ++i) {
+            auto sphereSrc = vtkSmartPointer<vtkSphereSource>::New();
+            sphereSrc->SetRadius(2.0);
+            sphereSrc->SetCenter(0, 0, 0);
+            sphereSrc->Update();
+
+            auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+            mapper->SetInputConnection(sphereSrc->GetOutputPort());
+
+            m_measureActors[i] = vtkSmartPointer<vtkActor>::New();
+            m_measureActors[i]->SetMapper(mapper);
+            m_measureActors[i]->GetProperty()->SetColor(i == 0 ? 1.0 : 0.0, i == 0 ? 0.0 : 1.0, 0.0);
+            m_measureActors[i]->GetProperty()->SetPointSize(8);
+            m_measureActors[i]->SetVisibility(0);
+
+            renderers[1]->AddActor(m_measureActors[i]);
+        }
+
+        // Create line actor between the two points.
+        auto lineSrc = vtkSmartPointer<vtkLineSource>::New();
+        lineSrc->SetPoint1(0, 0, 0);
+        lineSrc->SetPoint2(0, 0, 0);
+        lineSrc->Update();
+
+        auto lineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+        lineMapper->SetInputConnection(lineSrc->GetOutputPort());
+
+        m_measureLineActor = vtkSmartPointer<vtkActor>::New();
+        m_measureLineActor->SetMapper(lineMapper);
+        m_measureLineActor->GetProperty()->SetColor(1.0, 1.0, 0.0);
+        m_measureLineActor->GetProperty()->SetLineWidth(2);
+        m_measureLineActor->SetVisibility(0);
+
+        renderers[1]->AddActor(m_measureLineActor);
+    } else {
+        // Remove all measure actors.
+        for (int i = 0; i < 2; ++i) {
+            if (m_measureActors[i]) {
+                renderers[1]->RemoveActor(m_measureActors[i]);
+                m_measureActors[i] = nullptr;
+            }
+        }
+        if (m_measureLineActor) {
+            renderers[1]->RemoveActor(m_measureLineActor);
+            m_measureLineActor = nullptr;
+        }
+    }
+
+    updateViews();
+}
+
+void OmniNav::updateMeasurePoint(double x, double y, double z)
+{
+    if (!m_measureActive) return;
+
+    // Update the current sphere position.
+    if (m_measureActors[m_measureSign]) {
+        m_measureActors[m_measureSign]->SetPosition(x, y, z);
+        m_measureActors[m_measureSign]->SetVisibility(1);
+    }
+
+    m_measurePos[m_measureSign][0] = x;
+    m_measurePos[m_measureSign][1] = y;
+    m_measurePos[m_measureSign][2] = z;
+
+    m_measureSign = (m_measureSign + 1) % 2;
+
+    // Update line between the two points.
+    if (m_measureLineActor && m_measureActors[0] && m_measureActors[1]) {
+        auto lineSrc = vtkSmartPointer<vtkLineSource>::New();
+        lineSrc->SetPoint1(m_measurePos[0]);
+        lineSrc->SetPoint2(m_measurePos[1]);
+        lineSrc->Update();
+
+        auto lineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+        lineMapper->SetInputConnection(lineSrc->GetOutputPort());
+        m_measureLineActor->SetMapper(lineMapper);
+        m_measureLineActor->SetVisibility(1);
+    }
+
+    // Notify DataManager to display the distance.
+    auto dataManager = getModule<DataManager>();
+    if (dataManager) {
+        dataManager->receiveMeasurePoint(x, y, z);
+    }
+
+    updateViews();
+}
+
+// ============================================================
+// Project: 2D projection of 3D meshes onto slice views
+// ============================================================
+void OmniNav::onProjectToggled(bool on)
+{
+    m_projectActive = on;
+
+    if (!on) {
+        clearProjectPipelines();
+    } else {
+        initProjectPipelines();
+    }
+
+    updateViews();
+}
+
+void OmniNav::clearProjectPipelines()
+{
+    auto contourRenderers = getContourRenderers();
+    for (auto& p : m_projectPipelines) {
+        if (p.actor && p.contourRendererIdx >= 0 && p.contourRendererIdx < contourRenderers.size()) {
+            if (contourRenderers[p.contourRendererIdx]) {
+                contourRenderers[p.contourRendererIdx]->RemoveActor(p.actor);
+            }
+        }
+    }
+    m_projectPipelines.clear();
+}
+
+void OmniNav::initProjectPipelines()
+{
+    if (!m_projectActive) return;
+
+    auto dataManager = getModule<DataManager>();
+    if (!dataManager) return;
+
+    auto contourRenderers = getContourRenderers();
+    if (contourRenderers.size() < 4) return;
+
+    // Remove old pipelines.
+    clearProjectPipelines();
+
+    const std::vector<Model3D*>& meshes = dataManager->getMeshes();
+    if (meshes.empty()) return;
+
+    // Read zOffset from config.
+    double zOffset = 0.0;
+    QJsonObject baseConfig = getConfig();
+    if (baseConfig.contains("display") && baseConfig["display"].isObject()) {
+        QJsonObject displayObj = baseConfig["display"].toObject();
+        if (displayObj.contains("geometry") && displayObj["geometry"].isObject()) {
+            QJsonObject geoObj = displayObj["geometry"].toObject();
+            if (geoObj.contains("line_actor_z_offset")) {
+                zOffset = geoObj["line_actor_z_offset"].toDouble();
+            }
+        }
+    }
+
+    // Cutting normals and target contour renderer indices.
+    double normals[3][3] = {{0, 0, 1}, {1, 0, 0}, {0, 1, 0}};
+    // n=0 (Axial) → renderer 0, n=1 (Sagittal/X) → renderer 3, n=2 (Coronal/Y) → renderer 2
+    int rendererIdx[3] = {0, 3, 2};
+
+    const double* cc = getLineCenter();
+
+    // Compute image center (reslice origin base).
+    double center_x = 0, center_y = 0, center_z = 0;
+    auto images = dataManager->getImages();
+    int visIdx = dataManager->getCurrentVisualImageIndex();
+    if (visIdx >= 0 && visIdx < (int)images.size() && images[visIdx]) {
+        vtkImageData* img = images[visIdx]->getImageData();
+        if (img) {
+            double imgOrigin[3], imgSpacing[3];
+            int imgExtent[6];
+            img->GetOrigin(imgOrigin);
+            img->GetSpacing(imgSpacing);
+            img->GetExtent(imgExtent);
+            center_x = imgOrigin[0] + 0.5 * (imgExtent[0] + imgExtent[1]) * imgSpacing[0];
+            center_y = imgOrigin[1] + 0.5 * (imgExtent[2] + imgExtent[3]) * imgSpacing[1];
+            center_z = imgOrigin[2] + 0.5 * (imgExtent[4] + imgExtent[5]) * imgSpacing[2];
+        }
+    }
+
+    for (Model3D* mesh : meshes) {
+        if (!mesh || !mesh->getPolydata() || !mesh->getActor()) continue;
+        if (!mesh->getActor()->GetVisibility()) continue;
+
+        vtkPolyData* polyData = mesh->getPolydata();
+        const double* c = mesh->getColor();
+
+        for (int n = 0; n < 3; ++n) {
+            ProjectPipeline p;
+
+            // 1. Plane (origin set below to reslice origin).
+            p.plane = vtkSmartPointer<vtkPlane>::New();
+            p.plane->SetNormal(normals[n][0], normals[n][1], normals[n][2]);
+
+            // 2. Cutter.
+            p.cutter = vtkSmartPointer<vtkCutter>::New();
+            p.cutter->SetCutFunction(p.plane);
+            p.cutter->SetInputData(polyData);
+
+            // 3. Mapper — connect directly to cutter (no transform filter).
+            auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+            mapper->SetInputConnection(p.cutter->GetOutputPort());
+
+            // 4. Actor with UserTransform for coordinate mapping.
+            p.actor = vtkSmartPointer<vtkActor>::New();
+            p.actor->SetMapper(mapper);
+            p.actor->GetProperty()->SetLineWidth(4);
+            p.actor->GetProperty()->SetColor(c[0], c[1], c[2]);
+            p.actor->GetProperty()->SetOpacity(0.8);
+
+            p.contourRendererIdx = rendererIdx[n];
+            p.normalAxis = n == 0 ? 2 : (n == 1 ? 0 : 1);
+
+            // Compute reslice origin (matches adjustActors: only one component updated per reslice).
+            double cx = cc[0], cy = cc[1], cz = cc[2];
+            double rcx, rcy, rcz;
+            if (p.normalAxis == 2) {
+                // Axial: Z updated by scrollbar[0], X/Y at image center.
+                rcx = center_x; rcy = center_y; rcz = cz;
+            } else if (p.normalAxis == 0) {
+                // Sagittal: X updated by scrollbar[3], Y/Z at image center.
+                rcx = cx; rcy = center_y; rcz = center_z;
+            } else {
+                // Coronal: Y updated by scrollbar[2], X/Z at image center.
+                rcx = center_x; rcy = cy; rcz = center_z;
+            }
+
+            p.plane->SetOrigin(rcx, rcy, rcz);
+
+            // Transform: translate reslice origin to renderer origin, then orient.
+            auto tf = vtkSmartPointer<vtkTransform>::New();
+            tf->PostMultiply();
+
+            if (p.normalAxis == 2) {
+                tf->Translate(-rcx, -rcy, -rcz);
+                tf->Scale(1, -1, 1);
+            } else if (p.normalAxis == 0) {
+                tf->Translate(-rcx, -rcy, -rcz);
+                tf->RotateZ(-90);
+                tf->RotateX(-90);
+                tf->Scale(-1, 1, 1);
+            } else {
+                tf->Translate(-rcx, -rcy, -rcz);
+                tf->RotateX(-90);
+                tf->Scale(-1, 1, 1);
+            }
+
+            p.actor->SetUserTransform(tf);
+
+            // Add to contour renderer.
+            if (contourRenderers[p.contourRendererIdx]) {
+                contourRenderers[p.contourRendererIdx]->AddActor(p.actor);
+            }
+
+            m_projectPipelines.push_back(p);
+        }
+    }
+
+    // Render contour views only.
+    renderContourViews();
+}
+
+void OmniNav::updateProjectSlice()
+{
+    if (!m_projectActive || m_projectPipelines.empty()) return;
+
+    auto dataManager = getModule<DataManager>();
+    if (!dataManager) return;
+
+    const double* cc = getLineCenter();
+    double cx = cc[0], cy = cc[1], cz = cc[2];
+
+    // Compute the reslice origin for each view.
+    // adjustActors only updates one component per reslice:
+    //   Axial (i=0):   origin = (center_x, center_y, cz)
+    //   Coronal (i=1): origin = (center_x, cy, cz)
+    //   Sagittal (i=2): origin = (cx, center_y, cz)
+    // The contour must be cut at the reslice origin to align with the image.
+    auto images = dataManager->getImages();
+    int visIdx = dataManager->getCurrentVisualImageIndex();
+    double center_x = 0, center_y = 0;
+    if (visIdx >= 0 && visIdx < (int)images.size() && images[visIdx]) {
+        vtkImageData* img = images[visIdx]->getImageData();
+        if (img) {
+            double origin[3], spacing[3];
+            int extent[6];
+            img->GetOrigin(origin);
+            img->GetSpacing(spacing);
+            img->GetExtent(extent);
+            center_x = origin[0] + 0.5 * (extent[0] + extent[1]) * spacing[0];
+            center_y = origin[1] + 0.5 * (extent[2] + extent[3]) * spacing[1];
+        }
+    }
+
+    // Read actual reslice origins (adjustActors only updates one component per reslice).
+    // Axial (i=0):   origin = (center_x, center_y, cz)  — Z updated by adjustActors
+    // Coronal (i=1): origin = (center_x, cy, center_z)  — Y updated, Z stays at image center
+    // Sagittal (i=2): origin = (cx, center_y, center_z) — X updated, Z stays at image center
+    double resliceOrigins[3][3] = {
+        {center_x, center_y, cz},      // Axial: Z from scrollbar[0]
+        {center_x, cy, 0},             // Coronal: Y from scrollbar[2], Z updated below
+        {cx, center_y, 0}              // Sagittal: X from scrollbar[3], Z updated below
+    };
+    // Read actual Z from reslice axes (it stays at image center Z for Coronal/Sagittal).
+    double imageCenterZ = 0;
+    if (visIdx >= 0 && visIdx < (int)images.size() && images[visIdx]) {
+        vtkImageData* img = images[visIdx]->getImageData();
+        if (img) {
+            double imgOrigin[3], imgSpacing[3];
+            int imgExtent[6];
+            img->GetOrigin(imgOrigin);
+            img->GetSpacing(imgSpacing);
+            img->GetExtent(imgExtent);
+            imageCenterZ = imgOrigin[2] + 0.5 * (imgExtent[4] + imgExtent[5]) * imgSpacing[2];
+        }
+    }
+    resliceOrigins[1][2] = imageCenterZ;  // Coronal Z
+    resliceOrigins[2][2] = imageCenterZ;  // Sagittal Z
+
+    for (auto& p : m_projectPipelines) {
+        // Use reslice origin (not crosshair) so contour aligns with image.
+        double rcx, rcy, rcz;
+        if (p.normalAxis == 2) {
+            rcx = resliceOrigins[0][0]; rcy = resliceOrigins[0][1]; rcz = resliceOrigins[0][2];
+        } else if (p.normalAxis == 0) {
+            rcx = resliceOrigins[2][0]; rcy = resliceOrigins[2][1]; rcz = resliceOrigins[2][2];
+        } else {
+            rcx = resliceOrigins[1][0]; rcy = resliceOrigins[1][1]; rcz = resliceOrigins[1][2];
+        }
+
+        p.plane->SetOrigin(rcx, rcy, rcz);
+
+        // Transform: translate reslice origin to renderer origin, then orient.
+        auto tf = vtkSmartPointer<vtkTransform>::New();
+        tf->PostMultiply();
+
+        if (p.normalAxis == 2) {
+            // Axial: translate to origin, flip Y.
+            tf->Translate(-rcx, -rcy, -rcz);
+            tf->Scale(1, -1, 1);
+        } else if (p.normalAxis == 0) {
+            // Sagittal: translate → RotateZ(-90) → RotateX(-90) → Scale(-1,1,1).
+            tf->Translate(-rcx, -rcy, -rcz);
+            tf->RotateZ(-90);
+            tf->RotateX(-90);
+            tf->Scale(-1, 1, 1);
+        } else {
+            // Coronal: translate → RotateX(-90) → Scale(-1,1,1).
+            tf->Translate(-rcx, -rcy, -rcz);
+            tf->RotateX(-90);
+            tf->Scale(-1, 1, 1);
+        }
+
+        p.actor->SetUserTransform(tf);
+    }
+
+    renderContourViews();
+}
+
+void OmniNav::renderContourViews()
+{
+    auto renderers = getRenderers();
+    auto vtkWindows = getVtkRenderWindows();
+
+    // Expand clipping range so the cut contour is not clipped.
+    // The 2D cameras are far from the scene; default clipping range is too tight.
+    for (int i : {0, 2, 3}) {
+        if (i < renderers.size() && renderers[i]) {
+            vtkCamera* cam = renderers[i]->GetActiveCamera();
+            if (cam) {
+                cam->SetClippingRange(0.01, 5000.0);
+            }
+        }
+    }
+
+    // Render only the 2D views (0=Axial, 2=Coronal, 3=Sagittal), skip 3D (1).
+    for (int i : {0, 2, 3}) {
+        if (i < vtkWindows.size() && vtkWindows[i]) {
+            vtkWindows[i]->Render();
+        }
+    }
+}
+
 void OmniNav::onUpdateSlice(int view_num)
 {
     auto dataManager = getModule<DataManager>();
@@ -1064,8 +1479,10 @@ void OmniNav::onUpdateSlice(int view_num)
 
     updateView(view_num);
 
-    // updateProject2D(this, view_num);
-    //updateViews();
+    // Update 2D projection if active.
+    if (m_projectActive) {
+        updateProjectSlice();
+    }
 }
 
 
@@ -1091,14 +1508,26 @@ void OmniNav::updateSliceByLeftClicking0(vtkObject* caller, unsigned long eventI
     vtkImageData* vtk_img = dataManager->getImages()[dataManager->getCurrentVisualImageIndex()]->getImageData();
     int extent[6];
     double spacing[3];
+    double origin[3];
     vtk_img->GetExtent(extent);
     vtk_img->GetSpacing(spacing);
+    vtk_img->GetOrigin(origin);
 
-    int val2 = static_cast<int>((extent[3] - extent[2]) / 2.0 + (-pos[1]) / spacing[1]);
-    int val3 = static_cast<int>((extent[1] - extent[0]) / 2.0 + (pos[0]) / spacing[0]);
+    // The picker returns world coordinates at the clicked point on the image actor.
+    // The image actor is at the origin, and reslice output pixel (u,v) is at world (u,v,0).
+    // For Axial reslice (direction=0): X axis = world X, Y axis = world -Y.
+    // Reslice output (u, v) maps to volume: volX = u + center_x, volY = -v + center_y.
+    // The picker returns (pos[0], pos[1], 0) = (u, v, 0).
+    double center_x = origin[0] + 0.5 * (extent[0] + extent[1]) * spacing[0];
+    double center_y = origin[1] + 0.5 * (extent[2] + extent[3]) * spacing[1];
+    double volX = pos[0] + center_x;
+    double volY = -pos[1] + center_y;
 
-    m_uiDisplays[2]->getUi().scrollbar->setValue(val2);
+    int val3 = static_cast<int>((volX - origin[0]) / spacing[0]) - extent[0];
+    int val2 = static_cast<int>((volY - origin[1]) / spacing[1]) - extent[2];
+
     m_uiDisplays[3]->getUi().scrollbar->setValue(val3);
+    m_uiDisplays[2]->getUi().scrollbar->setValue(val2);
 }
 
 void OmniNav::updateSliceByLeftClicking1(vtkObject* caller, unsigned long eventId, void* callData)
@@ -1146,6 +1575,21 @@ void OmniNav::updateSliceByLeftClicking1(vtkObject* caller, unsigned long eventI
 
 void OmniNav::updateSliceByRightClicking1(vtkObject* caller, unsigned long eventId, void* callData)
 {
+    if (!m_measureActive) return;
+
+    auto irens = getIrens();
+    auto renderers = getRenderers();
+    auto picker = getPicker();
+
+    if (irens.size() < 2 || !irens[1] || renderers.size() < 2 || !renderers[1] || !picker) return;
+
+    int* clickPos = irens[1]->GetEventPosition();
+    picker->Pick(clickPos[0], clickPos[1], 0, renderers[1]);
+
+    double pos[3];
+    picker->GetPickPosition(pos);
+
+    updateMeasurePoint(pos[0], pos[1], pos[2]);
 }
 
 
@@ -1164,11 +1608,22 @@ void OmniNav::updateSliceByLeftClicking2(vtkObject* caller, unsigned long eventI
     vtkImageData* vtk_img = dataManager->getImages()[dataManager->getCurrentVisualImageIndex()]->getImageData();
     int extent[6];
     double spacing[3];
+    double origin[3];
     vtk_img->GetExtent(extent);
     vtk_img->GetSpacing(spacing);
+    vtk_img->GetOrigin(origin);
 
-    int val3 = static_cast<int>((extent[3] - extent[2]) / 2.0 - pos[0] / spacing[1]);
-    int val0 = static_cast<int>((extent[5] - extent[4]) / 2.0 + pos[1] / spacing[2]);
+    // Coronal reslice (direction=1): u=-volX+cx, v=volZ-cz. Picked (u,v) = (pos[0], pos[1]).
+    // volX = -pos[0] + cx_reslice, volZ = pos[1] + cz_reslice.
+    // But reslice origin X = center_x (constant), Z = center_z (constant).
+    // So: volX = -pos[0] + center_x, volZ = pos[1] + center_z.
+    double center_x = origin[0] + 0.5 * (extent[0] + extent[1]) * spacing[0];
+    double center_z = origin[2] + 0.5 * (extent[4] + extent[5]) * spacing[2];
+    double volX = -pos[0] + center_x;
+    double volZ = pos[1] + center_z;
+
+    int val3 = static_cast<int>((volX - origin[0]) / spacing[0]) - extent[0];
+    int val0 = static_cast<int>((volZ - origin[2]) / spacing[2]) - extent[4];
 
     m_uiDisplays[3]->getUi().scrollbar->setValue(val3);
     m_uiDisplays[0]->getUi().scrollbar->setValue(val0);
@@ -1191,14 +1646,23 @@ void OmniNav::updateSliceByLeftClicking3(vtkObject* caller, unsigned long eventI
     vtkImageData* vtk_img = dataManager->getImages()[dataManager->getCurrentVisualImageIndex()]->getImageData();
     int extent[6];
     double spacing[3];
+    double origin[3];
     vtk_img->GetExtent(extent);
     vtk_img->GetSpacing(spacing);
+    vtk_img->GetOrigin(origin);
 
-    int val0 = static_cast<int>((extent[5] - extent[4]) / 2.0 + pos[1] / spacing[2]);
-    int val2 = static_cast<int>((extent[1] - extent[0]) / 2.0 - pos[0] / spacing[0]);
+    // Sagittal reslice (direction=2): u=-volY+cy, v=volZ-cz. Picked (u,v) = (pos[0], pos[1]).
+    // volY = -pos[0] + center_y, volZ = pos[1] + center_z.
+    double center_y = origin[1] + 0.5 * (extent[2] + extent[3]) * spacing[1];
+    double center_z = origin[2] + 0.5 * (extent[4] + extent[5]) * spacing[2];
+    double volY = -pos[0] + center_y;
+    double volZ = pos[1] + center_z;
 
-    m_uiDisplays[0]->getUi().scrollbar->setValue(val0);
+    int val2 = static_cast<int>((volY - origin[1]) / spacing[1]) - extent[2];
+    int val0 = static_cast<int>((volZ - origin[2]) / spacing[2]) - extent[4];
+
     m_uiDisplays[2]->getUi().scrollbar->setValue(val2);
+    m_uiDisplays[0]->getUi().scrollbar->setValue(val0);
 }
 
 void OmniNav::onChangeVolumeVisualState(bool state)

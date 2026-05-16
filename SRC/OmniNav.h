@@ -62,9 +62,13 @@ private:
     struct ProjectPipeline {
         vtkSmartPointer<vtkPlane> plane;
         vtkSmartPointer<vtkCutter> cutter;
+        vtkSmartPointer<vtkTransform> cachedTransform;
+        vtkSmartPointer<vtkMatrix4x4> rotScaleMatrix;
         vtkSmartPointer<vtkActor> actor;
-        int contourRendererIdx;  // 0=Axial, 2=Coronal, 3=Sagittal
-        int normalAxis;          // 0=X(Sagittal), 1=Y(Coronal), 2=Z(Axial)
+        Model3D* sourceMesh;       // Pointer to source mesh (for visibility check)
+        int contourRendererIdx;    // 0=Axial, 2=Coronal, 3=Sagittal
+        int normalAxis;            // 0=X(Sagittal), 1=Y(Coronal), 2=Z(Axial)
+        double lastOrigin[3];
     };
     std::vector<ProjectPipeline> m_projectPipelines;
 

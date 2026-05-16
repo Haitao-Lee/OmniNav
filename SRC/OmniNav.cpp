@@ -251,7 +251,10 @@ void OmniNav::createActions()
     auto dataManager = getModule<DataManager>();
     if (dataManager) {
         connect(dataManager.get(), &DataManager::color3DChanged, this, &OmniNav::on3DColorChanged);
-        connect(dataManager.get(), &DataManager::signalUpdateViews, this, &OmniNav::updateViews);
+        connect(dataManager.get(), &DataManager::signalUpdateViews, this, [this]() {
+            updateViews();
+            if (m_projectActive) renderContourViews();
+        });
         connect(dataManager.get(), &DataManager::signalAddImage, this, &OmniNav::onAddImage);
         connect(dataManager.get(), &DataManager::signalDeleteImage, this, &OmniNav::onDeleteImage);
         connect(dataManager.get(), &DataManager::signalAddMesh, this, &OmniNav::onAddMesh);
@@ -584,43 +587,15 @@ void OmniNav::onAddImage(Image* dicom, int row, int last)
         m_vtkRenderWindows[i]->Render();
     }
 
-    // DEBUG: scrollbar state after loop
-    qDebug() << "========== [onAddImage DEBUG] ==========";
-    qDebug() << "  extent:" << extent[0] << extent[1] << extent[2] << extent[3] << extent[4] << extent[5];
-    qDebug() << "  spacing:" << spacing[0] << spacing[1] << spacing[2];
-    qDebug() << "  origin:" << origin[0] << origin[1] << origin[2];
-    qDebug() << "  scrollbar[0] val=" << m_uiDisplays[0]->getUi().scrollbar->value() << "max=" << m_uiDisplays[0]->getUi().scrollbar->maximum();
-    qDebug() << "  scrollbar[2] val=" << m_uiDisplays[2]->getUi().scrollbar->value() << "max=" << m_uiDisplays[2]->getUi().scrollbar->maximum();
-    qDebug() << "  scrollbar[3] val=" << m_uiDisplays[3]->getUi().scrollbar->value() << "max=" << m_uiDisplays[3]->getUi().scrollbar->maximum();
-
     double tmp_lineCenter[3] = {0.0, 0.0, 0.0};
     tmp_lineCenter[2] = spacing[2] * (m_uiDisplays[0]->getUi().scrollbar->value() + extent[4]) + origin[2];
     tmp_lineCenter[0] = spacing[0] * (m_uiDisplays[3]->getUi().scrollbar->value() + extent[0]) + origin[0];
     tmp_lineCenter[1] = spacing[1] * (m_uiDisplays[2]->getUi().scrollbar->value() + extent[2]) + origin[1];
 
-    qDebug() << "  tmp_lineCenter (from scrollbar):" << tmp_lineCenter[0] << tmp_lineCenter[1] << tmp_lineCenter[2];
-    qDebug() << "  m_lineCenter BEFORE:" << m_lineCenter[0] << m_lineCenter[1] << m_lineCenter[2];
-
-    // What SHOULD the crosshair be at? (scrollbar max/2 → image center)
-    double expectedCenter[3];
-    expectedCenter[0] = origin[0] + 0.5 * (extent[0] + extent[1]) * spacing[0];
-    expectedCenter[1] = origin[1] + 0.5 * (extent[2] + extent[3]) * spacing[1];
-    expectedCenter[2] = origin[2] + 0.5 * (extent[4] + extent[5]) * spacing[2];
-    qDebug() << "  Expected image center:" << expectedCenter[0] << expectedCenter[1] << expectedCenter[2];
-
-    // What scrollbar values would give the image center?
-    int sbForCenterX = static_cast<int>((expectedCenter[0] - origin[0]) / spacing[0]) - extent[0];
-    int sbForCenterY = static_cast<int>((expectedCenter[1] - origin[1]) / spacing[1]) - extent[2];
-    int sbForCenterZ = static_cast<int>((expectedCenter[2] - origin[2]) / spacing[2]) - extent[4];
-    qDebug() << "  Scrollbar values for image center: sb[3]=" << sbForCenterX << "sb[2]=" << sbForCenterY << "sb[0]=" << sbForCenterZ;
-    qDebug() << "  Current scrollbar values:           sb[3]=" << m_uiDisplays[3]->getUi().scrollbar->value() << "sb[2]=" << m_uiDisplays[2]->getUi().scrollbar->value() << "sb[0]=" << m_uiDisplays[0]->getUi().scrollbar->value();
-
     double diff[3];
     diff[0] = tmp_lineCenter[0] - m_lineCenter[0];
     diff[1] = tmp_lineCenter[1] - m_lineCenter[1];
     diff[2] = tmp_lineCenter[2] - m_lineCenter[2];
-
-    qDebug() << "  diff:" << diff[0] << diff[1] << diff[2];
 
     for (int i = 0; i < 3; ++i) {
         if (m_lineActors.size() > i && m_lineActors[i]) {
@@ -631,11 +606,6 @@ void OmniNav::onAddImage(Image* dicom, int row, int last)
     m_lineCenter[0] = tmp_lineCenter[0];
     m_lineCenter[1] = tmp_lineCenter[1];
     m_lineCenter[2] = tmp_lineCenter[2];
-
-    qDebug() << "  m_lineCenter AFTER:" << m_lineCenter[0] << m_lineCenter[1] << m_lineCenter[2];
-    qDebug() << "  actor[3] pos:" << m_lineActors[3]->GetPosition()[0] << m_lineActors[3]->GetPosition()[1] << m_lineActors[3]->GetPosition()[2];
-    qDebug() << "  actor[4] pos:" << m_lineActors[4]->GetPosition()[0] << m_lineActors[4]->GetPosition()[1] << m_lineActors[4]->GetPosition()[2];
-    qDebug() << "=========================================";
 
     reposition2DLineActors();
     
@@ -1335,25 +1305,34 @@ void OmniNav::initProjectPipelines()
 
             p.plane->SetOrigin(rcx, rcy, rcz);
 
-            // Transform: translate reslice origin to renderer origin, then orient.
-            auto tf = vtkSmartPointer<vtkTransform>::New();
-            tf->PostMultiply();
-
+            // Precompute rotation+scale matrix (constant for each view).
+            auto rs = vtkSmartPointer<vtkTransform>::New();
+            rs->PostMultiply();
             if (p.normalAxis == 2) {
-                tf->Translate(-rcx, -rcy, -rcz);
-                tf->Scale(1, -1, 1);
+                rs->Scale(1, -1, 1);
             } else if (p.normalAxis == 0) {
-                tf->Translate(-rcx, -rcy, -rcz);
-                tf->RotateZ(-90);
-                tf->RotateX(-90);
-                tf->Scale(-1, 1, 1);
+                rs->RotateZ(-90);
+                rs->RotateX(-90);
+                rs->Scale(-1, 1, 1);
             } else {
-                tf->Translate(-rcx, -rcy, -rcz);
-                tf->RotateX(-90);
-                tf->Scale(-1, 1, 1);
+                rs->RotateX(-90);
+                rs->Scale(-1, 1, 1);
             }
+            p.rotScaleMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+            p.rotScaleMatrix->DeepCopy(rs->GetMatrix());
 
-            p.actor->SetUserTransform(tf);
+            // Create cached transform with initial translation.
+            p.cachedTransform = vtkSmartPointer<vtkTransform>::New();
+            p.cachedTransform->SetMatrix(p.rotScaleMatrix);
+            p.cachedTransform->Translate(-rcx, -rcy, -rcz);
+
+            p.actor->SetUserTransform(p.cachedTransform);
+            p.sourceMesh = mesh;
+
+            // Store initial origin for change detection.
+            p.lastOrigin[0] = rcx;
+            p.lastOrigin[1] = rcy;
+            p.lastOrigin[2] = rcz;
 
             // Add to contour renderer.
             if (contourRenderers[p.contourRendererIdx]) {
@@ -1425,6 +1404,8 @@ void OmniNav::updateProjectSlice()
     resliceOrigins[1][2] = imageCenterZ;  // Coronal Z
     resliceOrigins[2][2] = imageCenterZ;  // Sagittal Z
 
+    bool anyChanged = false;
+
     for (auto& p : m_projectPipelines) {
         // Use reslice origin (not crosshair) so contour aligns with image.
         double rcx, rcy, rcz;
@@ -1436,42 +1417,47 @@ void OmniNav::updateProjectSlice()
             rcx = resliceOrigins[1][0]; rcy = resliceOrigins[1][1]; rcz = resliceOrigins[1][2];
         }
 
-        p.plane->SetOrigin(rcx, rcy, rcz);
-
-        // Transform: translate reslice origin to renderer origin, then orient.
-        auto tf = vtkSmartPointer<vtkTransform>::New();
-        tf->PostMultiply();
-
-        if (p.normalAxis == 2) {
-            // Axial: translate to origin, flip Y.
-            tf->Translate(-rcx, -rcy, -rcz);
-            tf->Scale(1, -1, 1);
-        } else if (p.normalAxis == 0) {
-            // Sagittal: translate → RotateZ(-90) → RotateX(-90) → Scale(-1,1,1).
-            tf->Translate(-rcx, -rcy, -rcz);
-            tf->RotateZ(-90);
-            tf->RotateX(-90);
-            tf->Scale(-1, 1, 1);
-        } else {
-            // Coronal: translate → RotateX(-90) → Scale(-1,1,1).
-            tf->Translate(-rcx, -rcy, -rcz);
-            tf->RotateX(-90);
-            tf->Scale(-1, 1, 1);
+        // Skip if origin hasn't changed.
+        if (std::abs(rcx - p.lastOrigin[0]) < 1e-6 &&
+            std::abs(rcy - p.lastOrigin[1]) < 1e-6 &&
+            std::abs(rcz - p.lastOrigin[2]) < 1e-6) {
+            continue;
         }
 
-        p.actor->SetUserTransform(tf);
+        p.lastOrigin[0] = rcx;
+        p.lastOrigin[1] = rcy;
+        p.lastOrigin[2] = rcz;
+
+        p.plane->SetOrigin(rcx, rcy, rcz);
+
+        // Reuse cached transform: set rotation+scale, then apply new translation.
+        p.cachedTransform->Identity();
+        p.cachedTransform->SetMatrix(p.rotScaleMatrix);
+        p.cachedTransform->Translate(-rcx, -rcy, -rcz);
+        p.cachedTransform->Modified();
+
+        anyChanged = true;
     }
 
-    renderContourViews();
+    // Only render if something actually changed.
+    if (anyChanged) {
+        renderContourViews();
+    }
 }
 
 void OmniNav::renderContourViews()
 {
+    // Sync contour visibility with source mesh visibility.
+    for (auto& p : m_projectPipelines) {
+        if (p.sourceMesh && p.sourceMesh->getActor()) {
+            p.actor->SetVisibility(p.sourceMesh->getActor()->GetVisibility());
+        }
+    }
+
     auto renderers = getRenderers();
     auto vtkWindows = getVtkRenderWindows();
 
     // Expand clipping range so the cut contour is not clipped.
-    // The 2D cameras are far from the scene; default clipping range is too tight.
     for (int i : {0, 2, 3}) {
         if (i < renderers.size() && renderers[i]) {
             vtkCamera* cam = renderers[i]->GetActiveCamera();
@@ -1514,12 +1500,6 @@ void OmniNav::onUpdateSlice(int view_num)
         spacing[2] * (m_uiDisplays[0]->getUi().scrollbar->value() + extent[4]) + origin[2]
     };
 
-    qDebug() << "=== [onUpdateSlice" << view_num << "] ===";
-    qDebug() << "  scrollbar[3,2,0]:" << m_uiDisplays[3]->getUi().scrollbar->value() << m_uiDisplays[2]->getUi().scrollbar->value() << m_uiDisplays[0]->getUi().scrollbar->value();
-    qDebug() << "  scrollbar max[3,2,0]:" << m_uiDisplays[3]->getUi().scrollbar->maximum() << m_uiDisplays[2]->getUi().scrollbar->maximum() << m_uiDisplays[0]->getUi().scrollbar->maximum();
-    qDebug() << "  tmp_lineCenter:" << tmp_lineCenter[0] << tmp_lineCenter[1] << tmp_lineCenter[2];
-    qDebug() << "  m_lineCenter OLD:" << m_lineCenter[0] << m_lineCenter[1] << m_lineCenter[2];
-
     double diff[3] = {
         tmp_lineCenter[0] - m_lineCenter[0],
         tmp_lineCenter[1] - m_lineCenter[1],
@@ -1531,20 +1511,11 @@ void OmniNav::onUpdateSlice(int view_num)
         m_lineActors[i]->AddPosition(diff[0], diff[1], diff[2]);
     }
 
-    qDebug() << "  diff:" << diff[0] << diff[1] << diff[2];
-
     m_lineActors[3]->AddPosition(diff[0], 0, 0);
     m_lineActors[4]->AddPosition(0, -diff[1], 0);
     m_lineActors[5]->AddPosition(0, diff[2], 0);
     m_lineActors[6]->AddPosition(-diff[0], 0, 0);
     m_lineActors[7]->AddPosition(0, diff[2], 0);
-
-    qDebug() << "  actor[3] (Axial V green):" << m_lineActors[3]->GetPosition()[0] << m_lineActors[3]->GetPosition()[1] << m_lineActors[3]->GetPosition()[2];
-    qDebug() << "  actor[4] (Axial H blue):" << m_lineActors[4]->GetPosition()[0] << m_lineActors[4]->GetPosition()[1] << m_lineActors[4]->GetPosition()[2];
-    qDebug() << "  actor[5] (Coronal V red):" << m_lineActors[5]->GetPosition()[0] << m_lineActors[5]->GetPosition()[1] << m_lineActors[5]->GetPosition()[2];
-    qDebug() << "  actor[6] (Coronal H green):" << m_lineActors[6]->GetPosition()[0] << m_lineActors[6]->GetPosition()[1] << m_lineActors[6]->GetPosition()[2];
-    qDebug() << "  actor[7] (Sagittal V red):" << m_lineActors[7]->GetPosition()[0] << m_lineActors[7]->GetPosition()[1] << m_lineActors[7]->GetPosition()[2];
-    qDebug() << "  actor[8] (Sagittal H blue):" << m_lineActors[8]->GetPosition()[0] << m_lineActors[8]->GetPosition()[1] << m_lineActors[8]->GetPosition()[2];
     m_lineActors[8]->AddPosition(-diff[1], 0, 0);
 
     m_lineCenter[0] = tmp_lineCenter[0];
@@ -1603,20 +1574,8 @@ void OmniNav::updateSliceByLeftClicking0(vtkObject* caller, unsigned long eventI
     int val3 = static_cast<int>((volX - origin[0]) / spacing[0]) - extent[0];
     int val2 = static_cast<int>((volY - origin[1]) / spacing[1]) - extent[2];
 
-    qDebug() << "=== [Pick Axial] ===";
-    qDebug() << "  screen:" << click_pos[0] << click_pos[1];
-    qDebug() << "  picked world:" << pos[0] << pos[1] << pos[2];
-    qDebug() << "  center:" << center_x << center_y;
-    qDebug() << "  volX=" << volX << "volY=" << volY;
-    qDebug() << "  computed val3=" << val3 << " val2=" << val2;
-    qDebug() << "  scrollbar[3] max=" << m_uiDisplays[3]->getUi().scrollbar->maximum() << " val=" << m_uiDisplays[3]->getUi().scrollbar->value();
-    qDebug() << "  scrollbar[2] max=" << m_uiDisplays[2]->getUi().scrollbar->maximum() << " val=" << m_uiDisplays[2]->getUi().scrollbar->value();
-
     m_uiDisplays[3]->getUi().scrollbar->setValue(val3);
     m_uiDisplays[2]->getUi().scrollbar->setValue(val2);
-
-    qDebug() << "  scrollbar[3] after=" << m_uiDisplays[3]->getUi().scrollbar->value();
-    qDebug() << "  scrollbar[2] after=" << m_uiDisplays[2]->getUi().scrollbar->value();
 }
 
 void OmniNav::updateSliceByLeftClicking1(vtkObject* caller, unsigned long eventId, void* callData)
@@ -1714,14 +1673,6 @@ void OmniNav::updateSliceByLeftClicking2(vtkObject* caller, unsigned long eventI
     int val3 = static_cast<int>((volX - origin[0]) / spacing[0]) - extent[0];
     int val0 = static_cast<int>((volZ - origin[2]) / spacing[2]) - extent[4];
 
-    qDebug() << "=== [Pick Coronal] ===";
-    qDebug() << "  screen:" << click_pos[0] << click_pos[1];
-    qDebug() << "  picked world:" << pos[0] << pos[1];
-    qDebug() << "  volX=" << volX << "volZ=" << volZ;
-    qDebug() << "  val3=" << val3 << " val0=" << val0;
-    qDebug() << "  scrollbar[3] max=" << m_uiDisplays[3]->getUi().scrollbar->maximum();
-    qDebug() << "  scrollbar[0] max=" << m_uiDisplays[0]->getUi().scrollbar->maximum();
-
     m_uiDisplays[3]->getUi().scrollbar->setValue(val3);
     m_uiDisplays[0]->getUi().scrollbar->setValue(val0);
 }
@@ -1757,14 +1708,6 @@ void OmniNav::updateSliceByLeftClicking3(vtkObject* caller, unsigned long eventI
 
     int val2 = static_cast<int>((volY - origin[1]) / spacing[1]) - extent[2];
     int val0 = static_cast<int>((volZ - origin[2]) / spacing[2]) - extent[4];
-
-    qDebug() << "=== [Pick Sagittal] ===";
-    qDebug() << "  screen:" << click_pos[0] << click_pos[1];
-    qDebug() << "  picked world:" << pos[0] << pos[1];
-    qDebug() << "  volY=" << volY << "volZ=" << volZ;
-    qDebug() << "  val2=" << val2 << " val0=" << val0;
-    qDebug() << "  scrollbar[2] max=" << m_uiDisplays[2]->getUi().scrollbar->maximum();
-    qDebug() << "  scrollbar[0] max=" << m_uiDisplays[0]->getUi().scrollbar->maximum();
 
     m_uiDisplays[2]->getUi().scrollbar->setValue(val2);
     m_uiDisplays[0]->getUi().scrollbar->setValue(val0);

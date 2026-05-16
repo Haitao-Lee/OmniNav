@@ -627,6 +627,9 @@ void OmniNav::onAddMesh(Model3D* Mesh)
 {
     m_renderers[1]->AddActor(Mesh->getActor());
     m_vtkRenderWindows[1]->Render();
+    if (m_projectActive) {
+        initProjectPipelines();
+    }
     updateViews();
 }
 
@@ -640,21 +643,29 @@ void OmniNav::onDeleteMesh(Model3D* Mesh)
         m_renderers[1]->RemoveActor(Mesh->getActor());
     }
 
+    // Remove legacy prjActors from contour renderers.
     const auto& prjActors = Mesh->getPrjActors();
-
     if (m_contourRenderers.size() >= 4) {
         if (prjActors.size() > 0 && prjActors[0] && m_contourRenderers[2]) {
             m_contourRenderers[2]->RemoveActor(prjActors[0]);
         }
-
         if (prjActors.size() > 1 && prjActors[1] && m_contourRenderers[3]) {
             m_contourRenderers[3]->RemoveActor(prjActors[1]);
         }
-
         if (prjActors.size() > 2 && prjActors[2] && m_contourRenderers[0]) {
             m_contourRenderers[0]->RemoveActor(prjActors[2]);
         }
     }
+
+    // Remove project pipeline entries for this mesh.
+    if (m_projectActive) {
+        m_projectPipelines.erase(
+            std::remove_if(m_projectPipelines.begin(), m_projectPipelines.end(),
+                [Mesh](const ProjectPipeline& p) { return p.sourceMesh == Mesh; }),
+            m_projectPipelines.end());
+        renderContourViews();
+    }
+
     updateViews();
 }
 
@@ -1284,7 +1295,7 @@ void OmniNav::initProjectPipelines()
             p.actor->SetMapper(mapper);
             p.actor->GetProperty()->SetLineWidth(4);
             p.actor->GetProperty()->SetColor(c[0], c[1], c[2]);
-            p.actor->GetProperty()->SetOpacity(0.8);
+            p.actor->GetProperty()->SetOpacity(mesh->getOpacity());
 
             p.contourRendererIdx = rendererIdx[n];
             p.normalAxis = n == 0 ? 2 : (n == 1 ? 0 : 1);
@@ -1447,10 +1458,13 @@ void OmniNav::updateProjectSlice()
 
 void OmniNav::renderContourViews()
 {
-    // Sync contour visibility with source mesh visibility.
+    // Sync contour properties with source mesh.
     for (auto& p : m_projectPipelines) {
         if (p.sourceMesh && p.sourceMesh->getActor()) {
             p.actor->SetVisibility(p.sourceMesh->getActor()->GetVisibility());
+            const double* c = p.sourceMesh->getColor();
+            p.actor->GetProperty()->SetColor(c[0], c[1], c[2]);
+            p.actor->GetProperty()->SetOpacity(p.sourceMesh->getOpacity());
         }
     }
 

@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <unordered_map>
 #include <QColor>
+#include <QElapsedTimer>
 #include "Base/Base.h"
 #include "BaseModule.h"
 #include "DataManager.h" 
@@ -43,6 +44,11 @@ private:
     void loadConfig();
     void addModule();
     void createActions();
+
+    // Double-click detection for coordinate picking
+    QElapsedTimer m_lastClickTime[4];
+    static constexpr int DOUBLE_CLICK_MS = 300;
+    bool isDoubleClick(int viewIndex);
 
     // Measure state
     bool m_measureActive = false;

@@ -162,6 +162,19 @@ void OmniNav::addModule()
     }
 }
 
+bool OmniNav::isDoubleClick(int viewIndex)
+{
+    if (viewIndex < 0 || viewIndex >= 4) return false;
+
+    qint64 elapsed = m_lastClickTime[viewIndex].isValid()
+        ? m_lastClickTime[viewIndex].elapsed()
+        : DOUBLE_CLICK_MS + 1;  // First click is always single
+
+    m_lastClickTime[viewIndex].start();
+
+    return (elapsed < DOUBLE_CLICK_MS);
+}
+
 
 void OmniNav::createActions()
 {
@@ -179,18 +192,26 @@ void OmniNav::createActions()
         if (!m_irens[i]) continue;
 
         if (i == 0) {
+            // Axial: single-click to rotate, double-click to pick coordinates
             vtkNew<vtkCallbackCommand> callback;
             callback->SetClientData(this);
             callback->SetCallback([](vtkObject* caller, unsigned long eventId, void* clientData, void* callData){
-                static_cast<OmniNav*>(clientData)->updateSliceByLeftClicking0(caller, eventId, callData);
+                auto* self = static_cast<OmniNav*>(clientData);
+                if (self->isDoubleClick(0)) {
+                    self->updateSliceByLeftClicking0(caller, eventId, callData);
+                }
             });
             m_irens[i]->AddObserver(vtkCommand::LeftButtonPressEvent, callback);
         }
         else if (i == 1) {
+            // 3D view: single-click for rotation, double-click for picking, right-click for measurement
             vtkNew<vtkCallbackCommand> callbackL;
             callbackL->SetClientData(this);
             callbackL->SetCallback([](vtkObject* caller, unsigned long eventId, void* clientData, void* callData){
-                static_cast<OmniNav*>(clientData)->updateSliceByLeftClicking1(caller, eventId, callData);
+                auto* self = static_cast<OmniNav*>(clientData);
+                if (self->isDoubleClick(1)) {
+                    self->updateSliceByLeftClicking1(caller, eventId, callData);
+                }
             });
             m_irens[i]->AddObserver(vtkCommand::LeftButtonPressEvent, callbackL);
 
@@ -202,18 +223,26 @@ void OmniNav::createActions()
             m_irens[i]->AddObserver(vtkCommand::RightButtonPressEvent, callbackR);
         }
         else if (i == 2) {
+            // Coronal: single-click to rotate, double-click to pick coordinates
             vtkNew<vtkCallbackCommand> callback;
             callback->SetClientData(this);
             callback->SetCallback([](vtkObject* caller, unsigned long eventId, void* clientData, void* callData){
-                static_cast<OmniNav*>(clientData)->updateSliceByLeftClicking2(caller, eventId, callData);
+                auto* self = static_cast<OmniNav*>(clientData);
+                if (self->isDoubleClick(2)) {
+                    self->updateSliceByLeftClicking2(caller, eventId, callData);
+                }
             });
             m_irens[i]->AddObserver(vtkCommand::LeftButtonPressEvent, callback);
         }
         else if (i == 3) {
+            // Sagittal: single-click to rotate, double-click to pick coordinates
             vtkNew<vtkCallbackCommand> callback;
             callback->SetClientData(this);
             callback->SetCallback([](vtkObject* caller, unsigned long eventId, void* clientData, void* callData){
-                static_cast<OmniNav*>(clientData)->updateSliceByLeftClicking3(caller, eventId, callData);
+                auto* self = static_cast<OmniNav*>(clientData);
+                if (self->isDoubleClick(3)) {
+                    self->updateSliceByLeftClicking3(caller, eventId, callData);
+                }
             });
             m_irens[i]->AddObserver(vtkCommand::LeftButtonPressEvent, callback);
         }
@@ -555,15 +584,43 @@ void OmniNav::onAddImage(Image* dicom, int row, int last)
         m_vtkRenderWindows[i]->Render();
     }
 
+    // DEBUG: scrollbar state after loop
+    qDebug() << "========== [onAddImage DEBUG] ==========";
+    qDebug() << "  extent:" << extent[0] << extent[1] << extent[2] << extent[3] << extent[4] << extent[5];
+    qDebug() << "  spacing:" << spacing[0] << spacing[1] << spacing[2];
+    qDebug() << "  origin:" << origin[0] << origin[1] << origin[2];
+    qDebug() << "  scrollbar[0] val=" << m_uiDisplays[0]->getUi().scrollbar->value() << "max=" << m_uiDisplays[0]->getUi().scrollbar->maximum();
+    qDebug() << "  scrollbar[2] val=" << m_uiDisplays[2]->getUi().scrollbar->value() << "max=" << m_uiDisplays[2]->getUi().scrollbar->maximum();
+    qDebug() << "  scrollbar[3] val=" << m_uiDisplays[3]->getUi().scrollbar->value() << "max=" << m_uiDisplays[3]->getUi().scrollbar->maximum();
+
     double tmp_lineCenter[3] = {0.0, 0.0, 0.0};
     tmp_lineCenter[2] = spacing[2] * (m_uiDisplays[0]->getUi().scrollbar->value() + extent[4]) + origin[2];
     tmp_lineCenter[0] = spacing[0] * (m_uiDisplays[3]->getUi().scrollbar->value() + extent[0]) + origin[0];
     tmp_lineCenter[1] = spacing[1] * (m_uiDisplays[2]->getUi().scrollbar->value() + extent[2]) + origin[1];
 
+    qDebug() << "  tmp_lineCenter (from scrollbar):" << tmp_lineCenter[0] << tmp_lineCenter[1] << tmp_lineCenter[2];
+    qDebug() << "  m_lineCenter BEFORE:" << m_lineCenter[0] << m_lineCenter[1] << m_lineCenter[2];
+
+    // What SHOULD the crosshair be at? (scrollbar max/2 → image center)
+    double expectedCenter[3];
+    expectedCenter[0] = origin[0] + 0.5 * (extent[0] + extent[1]) * spacing[0];
+    expectedCenter[1] = origin[1] + 0.5 * (extent[2] + extent[3]) * spacing[1];
+    expectedCenter[2] = origin[2] + 0.5 * (extent[4] + extent[5]) * spacing[2];
+    qDebug() << "  Expected image center:" << expectedCenter[0] << expectedCenter[1] << expectedCenter[2];
+
+    // What scrollbar values would give the image center?
+    int sbForCenterX = static_cast<int>((expectedCenter[0] - origin[0]) / spacing[0]) - extent[0];
+    int sbForCenterY = static_cast<int>((expectedCenter[1] - origin[1]) / spacing[1]) - extent[2];
+    int sbForCenterZ = static_cast<int>((expectedCenter[2] - origin[2]) / spacing[2]) - extent[4];
+    qDebug() << "  Scrollbar values for image center: sb[3]=" << sbForCenterX << "sb[2]=" << sbForCenterY << "sb[0]=" << sbForCenterZ;
+    qDebug() << "  Current scrollbar values:           sb[3]=" << m_uiDisplays[3]->getUi().scrollbar->value() << "sb[2]=" << m_uiDisplays[2]->getUi().scrollbar->value() << "sb[0]=" << m_uiDisplays[0]->getUi().scrollbar->value();
+
     double diff[3];
     diff[0] = tmp_lineCenter[0] - m_lineCenter[0];
     diff[1] = tmp_lineCenter[1] - m_lineCenter[1];
     diff[2] = tmp_lineCenter[2] - m_lineCenter[2];
+
+    qDebug() << "  diff:" << diff[0] << diff[1] << diff[2];
 
     for (int i = 0; i < 3; ++i) {
         if (m_lineActors.size() > i && m_lineActors[i]) {
@@ -574,6 +631,11 @@ void OmniNav::onAddImage(Image* dicom, int row, int last)
     m_lineCenter[0] = tmp_lineCenter[0];
     m_lineCenter[1] = tmp_lineCenter[1];
     m_lineCenter[2] = tmp_lineCenter[2];
+
+    qDebug() << "  m_lineCenter AFTER:" << m_lineCenter[0] << m_lineCenter[1] << m_lineCenter[2];
+    qDebug() << "  actor[3] pos:" << m_lineActors[3]->GetPosition()[0] << m_lineActors[3]->GetPosition()[1] << m_lineActors[3]->GetPosition()[2];
+    qDebug() << "  actor[4] pos:" << m_lineActors[4]->GetPosition()[0] << m_lineActors[4]->GetPosition()[1] << m_lineActors[4]->GetPosition()[2];
+    qDebug() << "=========================================";
 
     reposition2DLineActors();
     
@@ -1452,6 +1514,12 @@ void OmniNav::onUpdateSlice(int view_num)
         spacing[2] * (m_uiDisplays[0]->getUi().scrollbar->value() + extent[4]) + origin[2]
     };
 
+    qDebug() << "=== [onUpdateSlice" << view_num << "] ===";
+    qDebug() << "  scrollbar[3,2,0]:" << m_uiDisplays[3]->getUi().scrollbar->value() << m_uiDisplays[2]->getUi().scrollbar->value() << m_uiDisplays[0]->getUi().scrollbar->value();
+    qDebug() << "  scrollbar max[3,2,0]:" << m_uiDisplays[3]->getUi().scrollbar->maximum() << m_uiDisplays[2]->getUi().scrollbar->maximum() << m_uiDisplays[0]->getUi().scrollbar->maximum();
+    qDebug() << "  tmp_lineCenter:" << tmp_lineCenter[0] << tmp_lineCenter[1] << tmp_lineCenter[2];
+    qDebug() << "  m_lineCenter OLD:" << m_lineCenter[0] << m_lineCenter[1] << m_lineCenter[2];
+
     double diff[3] = {
         tmp_lineCenter[0] - m_lineCenter[0],
         tmp_lineCenter[1] - m_lineCenter[1],
@@ -1463,11 +1531,20 @@ void OmniNav::onUpdateSlice(int view_num)
         m_lineActors[i]->AddPosition(diff[0], diff[1], diff[2]);
     }
 
+    qDebug() << "  diff:" << diff[0] << diff[1] << diff[2];
+
     m_lineActors[3]->AddPosition(diff[0], 0, 0);
     m_lineActors[4]->AddPosition(0, -diff[1], 0);
     m_lineActors[5]->AddPosition(0, diff[2], 0);
     m_lineActors[6]->AddPosition(-diff[0], 0, 0);
     m_lineActors[7]->AddPosition(0, diff[2], 0);
+
+    qDebug() << "  actor[3] (Axial V green):" << m_lineActors[3]->GetPosition()[0] << m_lineActors[3]->GetPosition()[1] << m_lineActors[3]->GetPosition()[2];
+    qDebug() << "  actor[4] (Axial H blue):" << m_lineActors[4]->GetPosition()[0] << m_lineActors[4]->GetPosition()[1] << m_lineActors[4]->GetPosition()[2];
+    qDebug() << "  actor[5] (Coronal V red):" << m_lineActors[5]->GetPosition()[0] << m_lineActors[5]->GetPosition()[1] << m_lineActors[5]->GetPosition()[2];
+    qDebug() << "  actor[6] (Coronal H green):" << m_lineActors[6]->GetPosition()[0] << m_lineActors[6]->GetPosition()[1] << m_lineActors[6]->GetPosition()[2];
+    qDebug() << "  actor[7] (Sagittal V red):" << m_lineActors[7]->GetPosition()[0] << m_lineActors[7]->GetPosition()[1] << m_lineActors[7]->GetPosition()[2];
+    qDebug() << "  actor[8] (Sagittal H blue):" << m_lineActors[8]->GetPosition()[0] << m_lineActors[8]->GetPosition()[1] << m_lineActors[8]->GetPosition()[2];
     m_lineActors[8]->AddPosition(-diff[1], 0, 0);
 
     m_lineCenter[0] = tmp_lineCenter[0];
@@ -1526,8 +1603,20 @@ void OmniNav::updateSliceByLeftClicking0(vtkObject* caller, unsigned long eventI
     int val3 = static_cast<int>((volX - origin[0]) / spacing[0]) - extent[0];
     int val2 = static_cast<int>((volY - origin[1]) / spacing[1]) - extent[2];
 
+    qDebug() << "=== [Pick Axial] ===";
+    qDebug() << "  screen:" << click_pos[0] << click_pos[1];
+    qDebug() << "  picked world:" << pos[0] << pos[1] << pos[2];
+    qDebug() << "  center:" << center_x << center_y;
+    qDebug() << "  volX=" << volX << "volY=" << volY;
+    qDebug() << "  computed val3=" << val3 << " val2=" << val2;
+    qDebug() << "  scrollbar[3] max=" << m_uiDisplays[3]->getUi().scrollbar->maximum() << " val=" << m_uiDisplays[3]->getUi().scrollbar->value();
+    qDebug() << "  scrollbar[2] max=" << m_uiDisplays[2]->getUi().scrollbar->maximum() << " val=" << m_uiDisplays[2]->getUi().scrollbar->value();
+
     m_uiDisplays[3]->getUi().scrollbar->setValue(val3);
     m_uiDisplays[2]->getUi().scrollbar->setValue(val2);
+
+    qDebug() << "  scrollbar[3] after=" << m_uiDisplays[3]->getUi().scrollbar->value();
+    qDebug() << "  scrollbar[2] after=" << m_uiDisplays[2]->getUi().scrollbar->value();
 }
 
 void OmniNav::updateSliceByLeftClicking1(vtkObject* caller, unsigned long eventId, void* callData)
@@ -1625,6 +1714,14 @@ void OmniNav::updateSliceByLeftClicking2(vtkObject* caller, unsigned long eventI
     int val3 = static_cast<int>((volX - origin[0]) / spacing[0]) - extent[0];
     int val0 = static_cast<int>((volZ - origin[2]) / spacing[2]) - extent[4];
 
+    qDebug() << "=== [Pick Coronal] ===";
+    qDebug() << "  screen:" << click_pos[0] << click_pos[1];
+    qDebug() << "  picked world:" << pos[0] << pos[1];
+    qDebug() << "  volX=" << volX << "volZ=" << volZ;
+    qDebug() << "  val3=" << val3 << " val0=" << val0;
+    qDebug() << "  scrollbar[3] max=" << m_uiDisplays[3]->getUi().scrollbar->maximum();
+    qDebug() << "  scrollbar[0] max=" << m_uiDisplays[0]->getUi().scrollbar->maximum();
+
     m_uiDisplays[3]->getUi().scrollbar->setValue(val3);
     m_uiDisplays[0]->getUi().scrollbar->setValue(val0);
 }
@@ -1660,6 +1757,14 @@ void OmniNav::updateSliceByLeftClicking3(vtkObject* caller, unsigned long eventI
 
     int val2 = static_cast<int>((volY - origin[1]) / spacing[1]) - extent[2];
     int val0 = static_cast<int>((volZ - origin[2]) / spacing[2]) - extent[4];
+
+    qDebug() << "=== [Pick Sagittal] ===";
+    qDebug() << "  screen:" << click_pos[0] << click_pos[1];
+    qDebug() << "  picked world:" << pos[0] << pos[1];
+    qDebug() << "  volY=" << volY << "volZ=" << volZ;
+    qDebug() << "  val2=" << val2 << " val0=" << val0;
+    qDebug() << "  scrollbar[2] max=" << m_uiDisplays[2]->getUi().scrollbar->maximum();
+    qDebug() << "  scrollbar[0] max=" << m_uiDisplays[0]->getUi().scrollbar->maximum();
 
     m_uiDisplays[2]->getUi().scrollbar->setValue(val2);
     m_uiDisplays[0]->getUi().scrollbar->setValue(val0);

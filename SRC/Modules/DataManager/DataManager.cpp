@@ -2442,12 +2442,10 @@ bool DataManager::loadOmniTransform(std::string filePath)
 void DataManager::buildCache() {
     m_toolCache.clear();
     m_tableToolRowCache.clear();
-    qDebug()<<"m_toolCache and  m_tableToolRowCache clear!";
-    
+
     // Cache Tool pointers.
     for (Tool* tool : m_tools) {
         if (tool) m_toolCache.insert(QString::fromStdString(tool->getName()), tool);
-        qDebug()<<QString::fromStdString(tool->getName());
     }
     
     // Cache tool UI row indices.

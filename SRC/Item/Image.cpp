@@ -262,10 +262,6 @@ bool Image::loadFile()
     // --- Debug output (verify values were read) ---
     double range[2];
     tempImage->GetScalarRange(range);
-    qDebug() << "------------------------------------------";
-    qDebug() << "Raw Image Scalar Range:" << range[0] << "to" << range[1];
-    qDebug() << "Data Type:" << tempImage->GetScalarTypeAsString();
-    qDebug() << "------------------------------------------";
 
     // --- 2. Coordinate normalization logic (Slicer RAS consistency) ---
     tempImage->GetOrigin(m_origin);

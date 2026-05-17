@@ -132,7 +132,6 @@ void OmniNav::addModule()
         QString moduleName = value.toString();
 
         if (m_Modules.contains(moduleName)) {
-            qWarning() << "Module already exists:" << moduleName;
             continue;
         }
 
@@ -158,7 +157,6 @@ void OmniNav::addModule()
         m_Modules.insert({ moduleName, module });
 
         ui.modules_cbb->addItem(moduleName);
-        qDebug() << "Module Loaded:" << moduleName;
     }
 }
 
@@ -471,7 +469,6 @@ void OmniNav::onModuleSelectionChanged(const QString &moduleName)
     layout->addWidget(newView);
     newView->show();
     
-    qDebug() << "Switched to module:" << moduleName;
 }
 
 void OmniNav::onOpenFiles()

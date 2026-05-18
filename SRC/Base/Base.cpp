@@ -2,6 +2,8 @@
 #include <Eigen/Dense>
 #include <QCloseEvent>
 #include <QMessageBox>
+#include <QRegularExpression>
+#include <QIcon>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -15,6 +17,20 @@ Base::Base(QWidget *parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
+    // Fix tooltip: remove 'image' from stylesheet, use setIcon() instead.
+    auto fixBtn = [](QPushButton* btn, const QString& iconPath) {
+        QString sheet = btn->styleSheet();
+        sheet.replace(QRegularExpression("image\\s*:\\s*url\\([^)]+\\);"), "");
+        btn->setStyleSheet(sheet);
+        btn->setIcon(QIcon(iconPath));
+        btn->setIconSize(QSize(40, 40));
+        btn->setMaximumWidth(65);
+    };
+    fixBtn(ui.file_btn, ":/Manubar/text.png");
+    fixBtn(ui.folder_btn, ":/Manubar/folder.png");
+    fixBtn(ui.save_btn, ":/Manubar/save.png");
+    fixBtn(ui.setting_btn, ":/Manubar/setting.png");
+    fixBtn(ui.cross_line_btn, ":/Manubar/cross_line.png");
     loadConfig();
     init();
     createActions();

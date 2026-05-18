@@ -59,6 +59,12 @@ private:
 
     // Project state
     bool m_projectActive = false;
+
+    // Threshold overlay state
+    bool m_thresholdOverlayActive = false;
+
+    // Location mode state
+    bool m_locationActive = false;
     struct ProjectPipeline {
         vtkSmartPointer<vtkPlane> plane;
         vtkSmartPointer<vtkCutter> cutter;
@@ -111,4 +117,10 @@ private slots:
 
     // Project
     void onProjectToggled(bool on);
+
+    // Threshold
+    void onThresholdToggled(bool on);
+
+    // Location
+    void onLocationToggled(bool on);
 };

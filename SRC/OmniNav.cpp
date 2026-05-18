@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QDebug>
 #include <vtkVolumeCollection.h>
+#include <vtkImageActor.h>
 #include <QFile>
 #include <QCoreApplication>
 #include "DataManager.h"
@@ -266,6 +267,8 @@ void OmniNav::createActions()
         connect(dataManager.get(), &DataManager::signalChangeVolumeVisualState, this, &OmniNav::onChangeVolumeVisualState);
         connect(dataManager.get(), &DataManager::signalMeasureToggled, this, &OmniNav::onMeasureToggled);
         connect(dataManager.get(), &DataManager::signalProjectToggled, this, &OmniNav::onProjectToggled);
+        connect(dataManager.get(), &DataManager::signalThresholdToggled, this, &OmniNav::onThresholdToggled);
+        connect(dataManager.get(), &DataManager::signalLocationToggled, this, &OmniNav::onLocationToggled);
     }
 
     auto opticalNavigation = getModule<OpticalNavigation>();
@@ -1197,6 +1200,40 @@ void OmniNav::onProjectToggled(bool on)
     updateViews();
 }
 
+// ============================================================
+// Threshold: mask overlay in 2D views
+// ============================================================
+void OmniNav::onThresholdToggled(bool on)
+{
+    m_thresholdOverlayActive = on;
+    auto dataManager = getModule<DataManager>();
+    if (!dataManager) return;
+
+    auto contourRenderers = getContourRenderers();
+    // Renderer mapping: reslice[0]=Axial→renderer[0], reslice[1]=Coronal→renderer[2], reslice[2]=Sagittal→renderer[3]
+    int rendererIdx[3] = { 0, 2, 3 };
+
+    for (int i = 0; i < 3; ++i) {
+        vtkImageActor* overlayActor = dataManager->getThresholdOverlayActor(i);
+        if (!overlayActor) continue;
+        int ri = rendererIdx[i];
+        if (ri < contourRenderers.size() && contourRenderers[ri]) {
+            if (on) {
+                contourRenderers[ri]->AddActor(overlayActor);
+            } else {
+                contourRenderers[ri]->RemoveActor(overlayActor);
+            }
+        }
+    }
+
+    updateViews();
+}
+
+void OmniNav::onLocationToggled(bool on)
+{
+    m_locationActive = on;
+}
+
 void OmniNav::clearProjectPipelines()
 {
     auto contourRenderers = getContourRenderers();
@@ -1542,6 +1579,11 @@ void OmniNav::onUpdateSlice(int view_num)
     if (m_projectActive) {
         updateProjectSlice();
     }
+
+    // Sync threshold mask overlay with current slice position.
+    if (m_thresholdOverlayActive) {
+        dataManager->syncThresholdResliceAxes();
+    }
 }
 
 
@@ -1591,31 +1633,27 @@ void OmniNav::updateSliceByLeftClicking0(vtkObject* caller, unsigned long eventI
 
 void OmniNav::updateSliceByLeftClicking1(vtkObject* caller, unsigned long eventId, void* callData)
 {
-    // if (m_ui->location_btn->isChecked())
-    // {
-    //     int* click_pos = m_irens[1]->GetEventPosition();
-    //     m_picker->Pick(click_pos[0], click_pos[1], 0, m_renderers[1]);
-
-    //     double pos[3];
-    //     m_picker->GetPickPosition(pos);
-
-    //     qDebug() << "Picking the point at: (" 
-    //              << pos[0] << "," 
-    //              << pos[1] << "," 
-    //              << pos[2] << ")";
-    //     m_localizationActor->SetPosition(pos);
-    //     m_views[1]->update();
-    // }
-
-    auto dataManager = getModule<DataManager>();
-    if (!dataManager) return;
-    if (dataManager->getCurrentVisualImageIndex() == -1 || m_cross_line_sign != 2) return;
-
     int* click_pos = m_irens[1]->GetEventPosition();
     m_picker->Pick(click_pos[0], click_pos[1], 0, m_renderers[1]);
 
     double pos[3];
     m_picker->GetPickPosition(pos);
+
+    // Location mode: output picked world coordinates to info panel.
+    if (m_locationActive) {
+        auto dataManager = getModule<DataManager>();
+        if (dataManager) {
+            dataManager->printInfo(QString("3D Pick: (%1, %2, %3)")
+                .arg(pos[0], 0, 'f', 2)
+                .arg(pos[1], 0, 'f', 2)
+                .arg(pos[2], 0, 'f', 2));
+        }
+        return;
+    }
+
+    auto dataManager = getModule<DataManager>();
+    if (!dataManager) return;
+    if (dataManager->getCurrentVisualImageIndex() == -1 || m_cross_line_sign != 2) return;
 
     vtkImageData* vtk_img = dataManager->getImages()[dataManager->getCurrentVisualImageIndex()]->getImageData();
     double spacing[3];

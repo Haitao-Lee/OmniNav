@@ -56,11 +56,12 @@ void BaseModule::createActions()
 
 void BaseModule::initButton()
 {
-    const QString toolTipStyle = 
+    const QString toolTipStyle =
         "QToolTip {"
         "color: black;"
         "background-color: #ffffff;"
         "border: 1px solid gray;"
+        "image: none;"
         "}";
 
     const QString textBaseStyle = 

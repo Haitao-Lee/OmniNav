@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
 
     // ================== ④ Qt/VTK miscellaneous setup. ==================
     qInstallMessageHandler(myMessageOutput);
+    app.setStyleSheet("QToolTip { color: black; background-color: #ffffff; border: 1px solid gray; image: none; }");
 
     vtkObject::GlobalWarningDisplayOff();
 

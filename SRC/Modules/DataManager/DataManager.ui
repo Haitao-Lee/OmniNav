@@ -128,7 +128,7 @@ image: url(:/DataManager/3D.png);</string>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QPushButton" name="crossline_btn">
+           <widget class="QPushButton" name="threshold_btn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -144,14 +144,17 @@ image: url(:/DataManager/3D.png);</string>
              </font>
             </property>
             <property name="toolTip">
-             <string>cross line</string>
+             <string>Threshold segmentation: press to preview mask, drag 3D sliders, press again to reconstruct mesh</string>
             </property>
             <property name="styleSheet">
              <string notr="true">background-color: rgb(120, 120, 120);
-image: url(:/DataManager/withdraw.png);</string>
+image: url(:/DataManager/segmentation.png);</string>
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -274,11 +277,11 @@ image: url(:/DataManager/connect.png);</string>
              </font>
             </property>
             <property name="toolTip">
-             <string>localization</string>
+             <string>Toggle 3D coordinate picking: double-click in 3D view to output world coordinates</string>
             </property>
             <property name="styleSheet">
              <string notr="true">background-color: rgb(120, 120, 120);
-image: url(:/DataManager/measure.png);</string>
+image: url(:/DataManager/localization.png);</string>
             </property>
             <property name="text">
              <string/>

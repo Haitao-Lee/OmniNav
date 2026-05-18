@@ -15,7 +15,7 @@
 #endif
 
 namespace {
-    const QString toolTipStyle = "QToolTip { color: black; background-color: #ffffff; border: 1px solid gray; }";
+    const QString toolTipStyle = "QToolTip { color: black; background-color: #ffffff; border: 1px solid gray; image: none; }";
     const QString textBaseStyle = "QPushButton{ background-color:rgba(77,77,115,136); border-style:outset; border-width:1px; border-radius:15px; border-color:rgba(255,255,255,30); color:rgba(255,255,255,255); padding:6px; }";
     const QString hoverStyle = "QPushButton:hover{ background-color:rgba(200,200,200,100); border-color:rgba(255,255,255,200); color:rgba(255,255,255,255); }";
     const QString pressedGreen = "QPushButton:pressed{ background-color:rgba(100,255,100,200); border-color:rgba(255,255,255,30); border-style:inset; color:rgba(255,255,255,255); }";

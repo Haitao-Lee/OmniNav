@@ -14,5 +14,6 @@
     <file>slice.png</file>
     <file>delete.png</file>
     <file>add.png</file>
+    <file>segmentation.png</file>
   </qresource>
 </RCC>

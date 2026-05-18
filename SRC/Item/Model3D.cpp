@@ -19,7 +19,7 @@ Model3D::Model3D(std::string filePath, std::string orientation)
     m_visible = 1;
     m_opacity = 1.0;
     m_color[0] = 0.0;
-    m_color[1] = 0.0; 
+    m_color[1] = 0.0;
     m_color[2] = 0.5;
 
     QFileInfo fileInfo(QString::fromStdString(filePath));
@@ -31,6 +31,17 @@ Model3D::Model3D(std::string filePath, std::string orientation)
         m_polydata = nullptr;
         m_actor = nullptr;
     }
+}
+
+Model3D::Model3D()
+    : m_path(""), m_orientation("RAS")
+{
+    m_visible = 1;
+    m_opacity = 1.0;
+    m_color[0] = 0.0;
+    m_color[1] = 0.0;
+    m_color[2] = 0.5;
+    m_name = "unnamed";
 }
 
 Model3D::~Model3D()
@@ -103,15 +114,12 @@ void Model3D::createActor()
 
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputData(m_polydata);
+    mapper->ScalarVisibilityOff();
 
     m_actor = vtkSmartPointer<vtkActor>::New();
     m_actor->SetMapper(mapper);
     
-    if (m_color) {
-        m_actor->GetProperty()->SetColor(m_color);
-    } else {
-        m_actor->GetProperty()->SetColor(1.0, 1.0, 1.0);
-    }
+    m_actor->GetProperty()->SetColor(m_color[0], m_color[1], m_color[2]);
     
     m_actor->GetProperty()->SetOpacity(m_opacity);
     m_actor->GetProperty()->ShadingOn();
@@ -122,7 +130,7 @@ void Model3D::setActor(vtkSmartPointer<vtkActor> actor)
 {
     m_actor = actor;
     if (m_actor) {
-        m_actor->GetProperty()->SetColor(m_color);
+        m_actor->GetProperty()->SetColor(m_color[0], m_color[1], m_color[2]);
         m_actor->GetProperty()->SetOpacity(m_opacity);
         m_actor->SetVisibility(m_visible);
     }
@@ -132,7 +140,7 @@ void Model3D::setPrjActors(const std::vector<vtkSmartPointer<vtkActor>>& actors)
 {
     for (const auto& actor : actors) {
         if (actor) {
-            actor->GetProperty()->SetColor(m_color);
+            actor->GetProperty()->SetColor(m_color[0], m_color[1], m_color[2]);
             actor->GetProperty()->SetOpacity(m_opacity);
             actor->SetVisibility(m_visible);
             m_projectActors.push_back(actor);
@@ -144,7 +152,7 @@ void Model3D::setPrjActor(vtkSmartPointer<vtkActor> actor, int num)
 {
     if (!actor) return;
     
-    actor->GetProperty()->SetColor(m_color);
+    actor->GetProperty()->SetColor(m_color[0], m_color[1], m_color[2]);
     actor->GetProperty()->SetOpacity(m_opacity);
     actor->SetVisibility(m_visible);
     
@@ -201,10 +209,10 @@ void Model3D::setColor(double color[3])
     m_color[2] = color[2];
 
     if (m_actor) {
-        m_actor->GetProperty()->SetColor(m_color);
+        m_actor->GetProperty()->SetColor(m_color[0], m_color[1], m_color[2]);
     }
     for (auto& actor : m_projectActors) {
-        if (actor) actor->GetProperty()->SetColor(m_color);
+        if (actor) actor->GetProperty()->SetColor(m_color[0], m_color[1], m_color[2]);
     }
 }
 
@@ -218,15 +226,20 @@ void Model3D::setFilePath(std::string path)
     m_path = path;
 }
 
+void Model3D::setPolydata(vtkSmartPointer<vtkPolyData> polydata)
+{
+    m_polydata = polydata;
+}
+
 void Model3D::refresh()
 {
     if (m_actor) {
-        m_actor->GetProperty()->SetColor(m_color);
+        m_actor->GetProperty()->SetColor(m_color[0], m_color[1], m_color[2]);
         m_actor->GetProperty()->SetOpacity(m_opacity);
     }
     for (auto& actor : m_projectActors) {
         if (actor) {
-            actor->GetProperty()->SetColor(m_color);
+            actor->GetProperty()->SetColor(m_color[0], m_color[1], m_color[2]);
             actor->GetProperty()->SetOpacity(m_opacity);
         }
     }

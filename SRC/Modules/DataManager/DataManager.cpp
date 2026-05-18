@@ -23,6 +23,9 @@
 #include <vtkProperty.h>
 #include <vtkActor.h>
 #include <vtkMassProperties.h>
+#include <vtkExtractVOI.h>
+#include <vtkAlgorithmOutput.h>
+#include <vtkImageMapper3D.h>
 #include <vtkPlane.h>
 #include <vtkPlaneCutter.h>
 #include <vtkTransformPolyDataFilter.h>
@@ -63,11 +66,12 @@ void DataManager::init() {
 
 void DataManager::initButton()
 {
-    const QString toolTipStyle = 
+    const QString toolTipStyle =
         "QToolTip {"
         "color: black;"
         "background-color: #ffffff;"
         "border: 1px solid gray;"
+        "image: none;"
         "}";
 
     const QString textBaseStyle = 
@@ -135,7 +139,7 @@ void DataManager::initButton()
 
     applyTheme(ui.connect_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.registration_btn, textBaseStyle, pressedGreen, true);
-    applyTheme(ui.crossline_btn, textBaseStyle, pressedGreen, true);
+    applyTheme(ui.threshold_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.reset_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.measure_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.volume_btn, textBaseStyle, pressedGreen, true);
@@ -155,10 +159,12 @@ void DataManager::initButton()
 
     ui.measure_btn->setStyleSheet(ui.measure_btn->styleSheet() + checkedStyle);
     ui.project_btn->setStyleSheet(ui.project_btn->styleSheet() + checkedStyle);
+    ui.threshold_btn->setStyleSheet(ui.threshold_btn->styleSheet() + checkedStyle);
 
     applyTheme(ui.callibration_btn, textBaseStyle, pressedDark, true);
     applyTheme(ui.robotics_btn, textBaseStyle, pressedDark, true);
-    applyTheme(ui.location_btn, textBaseStyle, pressedDark, true);
+    applyTheme(ui.location_btn, textBaseStyle, pressedGreen, true);
+    ui.location_btn->setStyleSheet(ui.location_btn->styleSheet() + checkedStyle);
 
     applyTheme(ui.add_img_btn, iconBaseStyle, pressedDark, true);
     applyTheme(ui.delete_img_btn, iconBaseStyle, pressedDark, true);
@@ -241,6 +247,20 @@ void DataManager::initProperty()
     m_pwf3d->AddPoint(m_upper3Dvalue - 1.0, 0.8 * m_volOpacity);
     m_pwf3d->AddPoint(m_upper3Dvalue, m_volOpacity);
     m_pwf3d->ClampingOff();
+
+    // Threshold segmentation pipeline (initially inactive)
+    m_thresholdLut = vtkSmartPointer<vtkLookupTable>::New();
+    m_thresholdLut->SetNumberOfTableValues(2);
+    m_thresholdLut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);  // transparent
+    m_thresholdLut->SetTableValue(1, 0.0, 1.0, 0.0, 0.5);  // semi-transparent green
+    m_thresholdLut->SetTableRange(0, 1);
+    m_thresholdLut->Build();
+
+    m_imageThreshold = vtkSmartPointer<vtkImageThreshold>::New();
+    m_imageThreshold->ThresholdBetween(m_lower3Dvalue, m_upper3Dvalue);
+    m_imageThreshold->SetInValue(1);
+    m_imageThreshold->SetOutValue(0);
+    m_imageThreshold->SetOutputScalarTypeToUnsignedChar();
 
     const QString bgColor = "rgba(40, 44, 52, 255)";
     const QString focusBgColor = "rgba(20, 20, 25, 255)";
@@ -618,6 +638,10 @@ void DataManager::createActions()
     connect(ui.measure_btn, &QPushButton::toggled, this, &DataManager::onMeasureToggled);
     connect(ui.volume_btn, &QPushButton::clicked, this, &DataManager::onVolumeCalculation);
     connect(ui.project_btn, &QPushButton::toggled, this, &DataManager::onProjectToggled);
+    connect(ui.threshold_btn, &QPushButton::toggled, this, &DataManager::onThresholdToggled);
+    connect(ui.location_btn, &QPushButton::toggled, this, [this](bool checked) {
+        emit signalLocationToggled(checked);
+    });
 
     connect(ui.image_tw, &QTableWidget::itemDoubleClicked, this, &DataManager::onImageTableDoubleClicked);
 
@@ -2489,7 +2513,11 @@ void DataManager::onLower3DChanged(int value)
     if (m_lower3Dvalue > m_upper3Dvalue) {
         ui.upper3Dbox->setValue(m_lower3Dvalue);
     }
-    updateProperty();
+    if (m_thresholdActive) {
+        updateThresholdMask();
+    } else {
+        updateProperty();
+    }
 }
 
 void DataManager::onUpper3DChanged(int value)
@@ -2501,7 +2529,11 @@ void DataManager::onUpper3DChanged(int value)
     if (m_upper3Dvalue < m_lower3Dvalue) {
         ui.lower3Dbox->setValue(m_upper3Dvalue);
     }
-    updateProperty();
+    if (m_thresholdActive) {
+        updateThresholdMask();
+    } else {
+        updateProperty();
+    }
 }
 
 void DataManager::onTop3DColorBtnClicked()
@@ -2934,4 +2966,302 @@ void DataManager::importFolder()
                       .arg(landmarkPaths.size()).arg(transformPaths.size())
                       .arg(toolPaths.size());
     printInfo(summary);
+}
+
+void DataManager::onThresholdToggled(bool checked)
+{
+    m_thresholdActive = checked;
+
+    if (checked) {
+        // Enter threshold mode: show mask overlay immediately
+        updateThresholdMask();
+    } else {
+        // Exit threshold mode: ask user whether to reconstruct
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this, "Threshold Segmentation",
+            QString("Reconstruct 3D mesh?\n\nHU range: [%1, %2]")
+                .arg(m_lower3Dvalue).arg(m_upper3Dvalue),
+            QMessageBox::Yes | QMessageBox::No);
+
+        emit signalThresholdToggled(false);
+        updateProperty();
+
+        if (reply != QMessageBox::Yes) {
+            printInfo("Threshold segmentation cancelled.");
+            return;
+        }
+
+        if (m_currentImageIndex < 0 || m_currentImageIndex >= (int)m_images.size()) {
+            printInfo("No image loaded for threshold segmentation.");
+            return;
+        }
+
+        Image* img = m_images[m_currentImageIndex];
+        vtkImageData* imageData = img->getImageData();
+        if (!imageData) {
+            printInfo("Image data is empty.");
+            return;
+        }
+
+        m_imageThreshold->SetInputData(imageData);
+        m_imageThreshold->ThresholdBetween(m_lower3Dvalue, m_upper3Dvalue);
+        m_imageThreshold->Update();
+
+        vtkSmartPointer<vtkMarchingCubes> marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
+        marchingCubes->SetInputConnection(m_imageThreshold->GetOutputPort());
+        marchingCubes->SetValue(0, 0.5);
+        marchingCubes->ComputeNormalsOn();
+        marchingCubes->Update();
+
+        vtkPolyData* output = marchingCubes->GetOutput();
+        if (!output || output->GetNumberOfPoints() == 0) {
+            printInfo("Threshold segmentation produced empty mesh (HU range: " +
+                      QString::number(m_lower3Dvalue) + " ~ " + QString::number(m_upper3Dvalue) + ").");
+            return;
+        }
+
+        // Deep copy polydata (filter output becomes invalid when filter is destroyed)
+        vtkSmartPointer<vtkPolyData> polyCopy = vtkSmartPointer<vtkPolyData>::New();
+        polyCopy->DeepCopy(output);
+
+        Model3D* newMesh = new Model3D();
+        newMesh->setPolydata(polyCopy);
+        newMesh->setName("Threshold_" + std::to_string(m_lower3Dvalue) + "_" + std::to_string(m_upper3Dvalue));
+
+        // Set color from config
+        QJsonObject dmConfig = m_config["DataManager"].toObject();
+        QJsonObject meshConfig = dmConfig["meshes"].toObject();
+        QJsonArray colorList = meshConfig["colors"].toArray();
+        double r = 1.0, g = 1.0, b = 1.0;
+        if (!colorList.isEmpty()) {
+            int index = m_meshes.size() % colorList.size();
+            QJsonArray rgb = colorList[index].toArray();
+            r = rgb[0].toDouble();
+            g = rgb[1].toDouble();
+            b = rgb[2].toDouble();
+        }
+        double c[3] = { r, g, b };
+        newMesh->setColor(c);
+        newMesh->setOpacity(meshConfig["opacity"].toDouble(1.0));
+        newMesh->setVisible(meshConfig["visible"].toInt(1));
+        newMesh->createActor();
+
+        m_meshes.push_back(newMesh);
+
+        // Add table row (same pattern as add3Dmodel)
+        int row = ui.mesh_tw->rowCount();
+        ui.mesh_tw->insertRow(row);
+
+        QTableWidgetItem* nameItem = new QTableWidgetItem(QString::fromStdString(newMesh->getName()));
+        nameItem->setTextAlignment(Qt::AlignCenter);
+        nameItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        ui.mesh_tw->setItem(row, 0, nameItem);
+
+        // Visible button
+        QWidget* visContainer = new QWidget();
+        visContainer->setStyleSheet("background-color: transparent;");
+        QHBoxLayout* visLayout = new QHBoxLayout(visContainer);
+        visLayout->setContentsMargins(0, 0, 0, 0);
+        visLayout->setAlignment(Qt::AlignCenter);
+        QPushButton* visBtn = new QPushButton();
+        visBtn->setFlat(true);
+        visBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        QString visStyle = "QPushButton { image: url(:/DataManager/visible.png); border: none; }";
+        QString unvisStyle = "QPushButton { image: url(:/DataManager/unvisible.png); border: none; }";
+        visBtn->setStyleSheet(newMesh->getVisible() ? visStyle : unvisStyle);
+        connect(visBtn, &QPushButton::clicked, [=]() {
+            newMesh->setVisible(!newMesh->getVisible());
+            visBtn->setStyleSheet(newMesh->getVisible() ? visStyle : unvisStyle);
+            emit signalUpdateViews();
+        });
+        visLayout->addWidget(visBtn);
+        ui.mesh_tw->setCellWidget(row, 1, visContainer);
+
+        // Opacity slider
+        QWidget* opContainer = new QWidget();
+        opContainer->setStyleSheet("background-color: transparent;");
+        QHBoxLayout* opLayout = new QHBoxLayout(opContainer);
+        opLayout->setContentsMargins(4, 0, 4, 0);
+        opLayout->setAlignment(Qt::AlignCenter);
+        QSlider* slider = new QSlider(Qt::Horizontal);
+        slider->setRange(0, 100);
+        slider->setValue(static_cast<int>(newMesh->getOpacity() * 100));
+        slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        connect(slider, &QSlider::valueChanged, [=](int value) {
+            newMesh->setOpacity(value / 100.0);
+            emit signalUpdateViews();
+        });
+        opLayout->addWidget(slider);
+        ui.mesh_tw->setCellWidget(row, 2, opContainer);
+
+        // Color button
+        QWidget* colorContainer = new QWidget();
+        QHBoxLayout* colorLayout = new QHBoxLayout(colorContainer);
+        colorContainer->setStyleSheet("background-color: transparent;");
+        colorLayout->setContentsMargins(2, 2, 2, 2);
+        colorLayout->setAlignment(Qt::AlignCenter);
+        QPushButton* colorBtn = new QPushButton();
+        colorBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        QString colorStyle = QString("background-color: rgb(%1, %2, %3); border: 1px solid gray; border-radius: 4px;")
+            .arg(r * 255).arg(g * 255).arg(b * 255);
+        colorBtn->setStyleSheet(colorStyle);
+        connect(colorBtn, &QPushButton::clicked, [=]() {
+            const double* init_c = newMesh->getColor();
+            QColor initColor = QColor::fromRgbF(init_c[0], init_c[1], init_c[2]);
+            QColor newColor = QColorDialog::getColor(initColor, this, "Select Model Color");
+            if (newColor.isValid()) {
+                double rgb[3] = { newColor.redF(), newColor.greenF(), newColor.blueF() };
+                newMesh->setColor(rgb);
+                colorBtn->setStyleSheet(QString("background-color: %1; border: 1px solid gray; border-radius: 4px;").arg(newColor.name()));
+            }
+            emit signalUpdateViews();
+        });
+        colorLayout->addWidget(colorBtn);
+        ui.mesh_tw->setCellWidget(row, 3, colorContainer);
+
+        // Tool combo box
+        QWidget* toolContainer = new QWidget();
+        toolContainer->setStyleSheet("background-color: transparent;");
+        QHBoxLayout* toolLayout = new QHBoxLayout(toolContainer);
+        toolLayout->setContentsMargins(2, 0, 2, 0);
+        toolLayout->setAlignment(Qt::AlignCenter);
+        QComboBox* toolCbb = new QComboBox();
+        toolCbb->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        toolCbb->addItem("None");
+        for (const auto& tool : m_tools) {
+            if (tool) toolCbb->addItem(QString::fromStdString(tool->getName()));
+        }
+        toolLayout->addWidget(toolCbb);
+        ui.mesh_tw->setCellWidget(row, 4, toolContainer);
+
+        // Orientation text
+        QTableWidgetItem* orientItem = new QTableWidgetItem(QString::fromStdString(newMesh->getOrientation()));
+        orientItem->setTextAlignment(Qt::AlignCenter);
+        orientItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        ui.mesh_tw->setItem(row, 5, orientItem);
+
+        emit signalAddMesh(newMesh);
+        printInfo("Threshold mesh created: HU [" +
+                  QString::number(m_lower3Dvalue) + ", " +
+                  QString::number(m_upper3Dvalue) + "] " +
+                  QString::number(output->GetNumberOfPoints()) + " points");
+    }
+}
+
+void DataManager::updateThresholdMask()
+{
+    if (!m_thresholdActive) return;
+    if (m_currentImageIndex < 0 || m_currentImageIndex >= (int)m_images.size()) return;
+
+    Image* img = m_images[m_currentImageIndex];
+    vtkImageData* imageData = img->getImageData();
+    if (!imageData) return;
+
+    // Update threshold range
+    m_imageThreshold->SetInputData(imageData);
+    m_imageThreshold->ThresholdBetween(m_lower3Dvalue, m_upper3Dvalue);
+    m_imageThreshold->Update();
+
+    // Get image extent for vtkExtractVOI (single-slice optimization)
+    int extent[6];
+    imageData->GetExtent(extent);
+
+    const auto& reslices = img->getReslices();
+    if (reslices.size() < 3) return;
+
+    // Build/update the mask overlay pipeline for each 2D view
+    // View mapping: reslice[0]=Axial, reslice[1]=Coronal, reslice[2]=Sagittal
+    for (int i = 0; i < 3; ++i) {
+        if (!m_thresholdOverlayActors[i]) {
+            // --- First-time creation ---
+
+            // Extract VOI: get the current slice index from the reslice matrix
+            vtkSmartPointer<vtkExtractVOI> extractVOI = vtkSmartPointer<vtkExtractVOI>::New();
+            extractVOI->SetInputConnection(m_imageThreshold->GetOutputPort());
+            // Set a single-slice VOI (will be updated each time)
+            extractVOI->SetVOI(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+
+            // Reslice the extracted VOI to 2D
+            vtkSmartPointer<vtkImageReslice> maskReslice = vtkSmartPointer<vtkImageReslice>::New();
+            maskReslice->SetInputConnection(extractVOI->GetOutputPort());
+            maskReslice->SetOutputDimensionality(2);
+            maskReslice->SetInterpolationModeToNearestNeighbor();
+            maskReslice->SetResliceAxes(reslices[i]->GetResliceAxes());
+
+            // Map binary mask to color
+            m_thresholdColorMap[i] = vtkSmartPointer<vtkImageMapToColors>::New();
+            m_thresholdColorMap[i]->SetLookupTable(m_thresholdLut);
+            m_thresholdColorMap[i]->SetInputConnection(maskReslice->GetOutputPort());
+            m_thresholdColorMap[i]->PassAlphaToOutputOn();
+            m_thresholdColorMap[i]->Update();
+
+            // Create overlay actor
+            m_thresholdOverlayActors[i] = vtkSmartPointer<vtkImageActor>::New();
+            m_thresholdOverlayActors[i]->GetMapper()->SetInputConnection(
+                m_thresholdColorMap[i]->GetOutputPort());
+            m_thresholdOverlayActors[i]->SetOpacity(0.5);
+        } else {
+            // --- Update existing pipeline ---
+
+            // Navigate pipeline: actor <- colormap <- reslice <- extractVOI <- threshold
+            // Get the reslice filter from colormap's input
+            vtkImageReslice* maskReslice = vtkImageReslice::SafeDownCast(
+                m_thresholdColorMap[i]->GetInputConnection(0, 0)->GetProducer());
+            if (!maskReslice) continue;
+
+            // Update reslice axes to current slice position
+            maskReslice->SetResliceAxes(reslices[i]->GetResliceAxes());
+
+            // Update VOI to current slice only (for performance)
+            vtkExtractVOI* extractVOI = vtkExtractVOI::SafeDownCast(
+                maskReslice->GetInputConnection(0, 0)->GetProducer());
+            if (extractVOI) {
+                // Determine which slice index is currently shown
+                vtkMatrix4x4* axes = reslices[i]->GetResliceAxes();
+                // The slice position is in the translation component of the reslice matrix
+                // For Axial(i=0): Z slice, for Coronal(i=1): Y slice, for Sagittal(i=2): X slice
+                double pos[3] = { axes->GetElement(0, 3), axes->GetElement(1, 3), axes->GetElement(2, 3) };
+                double origin[3];
+                imageData->GetOrigin(origin);
+                double spacing[3];
+                imageData->GetSpacing(spacing);
+
+                // Compute slice index in volume coordinates
+                int axisIdx = (i == 0) ? 2 : (i == 1) ? 1 : 0;  // Axial->Z, Coronal->Y, Sagittal->X
+                int sliceIdx = static_cast<int>((pos[axisIdx] - origin[axisIdx]) / spacing[axisIdx] + 0.5);
+                // Clamp to extent
+                int lo = extent[axisIdx * 2];
+                int hi = extent[axisIdx * 2 + 1];
+                if (sliceIdx < lo) sliceIdx = lo;
+                if (sliceIdx > hi) sliceIdx = hi;
+
+                int voi[6] = { extent[0], extent[1], extent[2], extent[3], extent[4], extent[5] };
+                voi[axisIdx * 2] = sliceIdx;
+                voi[axisIdx * 2 + 1] = sliceIdx;
+                extractVOI->SetVOI(voi[0], voi[1], voi[2], voi[3], voi[4], voi[5]);
+            }
+
+            m_thresholdColorMap[i]->Update();
+        }
+    }
+
+    emit signalThresholdToggled(true);
+    emit signalUpdateViews();
+}
+
+void DataManager::syncThresholdResliceAxes()
+{
+    if (!m_thresholdActive || m_currentImageIndex < 0) return;
+    Image* img = m_images[m_currentImageIndex];
+    const auto& reslices = img->getReslices();
+
+    for (int i = 0; i < 3; ++i) {
+        if (m_thresholdColorMap[i] && i < (int)reslices.size()) {
+            vtkImageReslice* maskReslice = vtkImageReslice::SafeDownCast(
+                m_thresholdColorMap[i]->GetInputConnection(0, 0)->GetProducer());
+            if (maskReslice && reslices[i]) {
+                maskReslice->SetResliceAxes(reslices[i]->GetResliceAxes());
+            }
+        }
+    }
 }

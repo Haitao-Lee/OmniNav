@@ -11,6 +11,11 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkLookupTable.h>
+#include <vtkImageThreshold.h>
+#include <vtkImageMapToColors.h>
+#include <vtkImageActor.h>
+#include <vtkImageReslice.h>
+#include <vtkMarchingCubes.h>
 #include "BaseModule.h"
 #include "ui_DataManager.h"
 #include "Image.h"
@@ -114,6 +119,8 @@ signals:
     void signalChangeVolumeVisualState(bool state);
     void signalMeasureToggled(bool on);
     void signalProjectToggled(bool on);
+    void signalThresholdToggled(bool on);
+    void signalLocationToggled(bool on);
 
 private:
     Ui::DataManagerClass ui;
@@ -152,6 +159,13 @@ private:
 
     QColor m_top3DColor;
     QColor m_bottom3DColor;
+
+    // Threshold segmentation state
+    bool m_thresholdActive = false;
+    vtkSmartPointer<vtkImageThreshold> m_imageThreshold;
+    vtkSmartPointer<vtkImageMapToColors> m_thresholdColorMap[3];
+    vtkSmartPointer<vtkImageActor> m_thresholdOverlayActors[3];
+    vtkSmartPointer<vtkLookupTable> m_thresholdLut;
 
     void init() override;
     void initSplitters() override;
@@ -208,7 +222,13 @@ private slots:
     void onMeasureToggled(bool checked);
     void onVolumeCalculation();
     void onProjectToggled(bool checked);
+    void onThresholdToggled(bool checked);
 
 public:
     void receiveMeasurePoint(double x, double y, double z);
+    vtkImageActor* getThresholdOverlayActor(int i) const {
+        return (i >= 0 && i < 3) ? m_thresholdOverlayActors[i] : nullptr;
+    }
+    void syncThresholdResliceAxes();
+    void updateThresholdMask();
 };

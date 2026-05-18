@@ -14,6 +14,7 @@
 class Model3D {
 public:
     explicit Model3D(std::string filePath, std::string orientation = "RAS");
+    Model3D();  // for in-memory polydata (e.g. threshold segmentation)
     ~Model3D();
 
     bool loadFile(std::string path);
@@ -30,6 +31,7 @@ public:
     void setColor(double color[3]);
     void setName(std::string name);
     void setFilePath(std::string path);
+    void setPolydata(vtkSmartPointer<vtkPolyData> polydata);
 
     vtkSmartPointer<vtkPolyData> getPolydata() const { return m_polydata; }
     std::string getOrientation() const { return m_orientation; }

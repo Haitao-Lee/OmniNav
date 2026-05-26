@@ -15,5 +15,6 @@
     <file>delete.png</file>
     <file>add.png</file>
     <file>segmentation.png</file>
+    <file>drawing_tools20.png</file>
   </qresource>
 </RCC>

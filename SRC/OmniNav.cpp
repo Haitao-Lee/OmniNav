@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <vtkVolumeCollection.h>
 #include <vtkImageActor.h>
+#include <vtkImageMapper3D.h>
 #include <QFile>
 #include <QCoreApplication>
 #include "DataManager.h"
@@ -245,6 +246,19 @@ void OmniNav::createActions()
             });
             m_irens[i]->AddObserver(vtkCommand::LeftButtonPressEvent, callback);
         }
+
+        // Add paint mouse move handling for all 2D views (0, 2, 3)
+        if (i != 1) {
+            struct PaintClientData { OmniNav* self; int viewIdx; };
+            auto* paintData = new PaintClientData{this, i};
+            vtkNew<vtkCallbackCommand> paintCallback;
+            paintCallback->SetClientData(paintData);
+            paintCallback->SetCallback([](vtkObject* caller, unsigned long, void* clientData, void*){
+                auto* data = static_cast<PaintClientData*>(clientData);
+                data->self->handlePaintMouse(data->viewIdx, caller);
+            });
+            m_irens[i]->AddObserver(vtkCommand::MouseMoveEvent, paintCallback);
+        }
     }
 
     auto dataManager = getModule<DataManager>();
@@ -269,6 +283,9 @@ void OmniNav::createActions()
         connect(dataManager.get(), &DataManager::signalProjectToggled, this, &OmniNav::onProjectToggled);
         connect(dataManager.get(), &DataManager::signalThresholdToggled, this, &OmniNav::onThresholdToggled);
         connect(dataManager.get(), &DataManager::signalLocationToggled, this, &OmniNav::onLocationToggled);
+        connect(dataManager.get(), &DataManager::signalSlicePlanesToggled, this, &OmniNav::onSlicePlanesToggled);
+        connect(dataManager.get(), &DataManager::signalPaintToggled, this, &OmniNav::onPaintToggled);
+        connect(dataManager.get(), &DataManager::signalResetCamera, this, &OmniNav::onResetCamera);
     }
 
     auto opticalNavigation = getModule<OpticalNavigation>();
@@ -1234,6 +1251,137 @@ void OmniNav::onLocationToggled(bool on)
     m_locationActive = on;
 }
 
+// ============================================================
+// Slice Planes: show/hide slice planes in 3D view
+// ============================================================
+void OmniNav::onSlicePlanesToggled(bool on)
+{
+    m_slicePlanesActive = on;
+
+    if (on) {
+        // Create slice plane actors from current reslice output
+        auto dataManager = getModule<DataManager>();
+        if (!dataManager || dataManager->getCurrentVisualImageIndex() < 0) return;
+
+        Image* img = dataManager->getImages()[dataManager->getCurrentVisualImageIndex()];
+        const auto& reslices = img->getReslices();
+        const auto& colormaps = img->getColormaps();
+
+        for (int i = 0; i < 3 && i < (int)reslices.size(); ++i) {
+            if (!m_slicePlaneActors[i]) {
+                m_slicePlaneActors[i] = vtkSmartPointer<vtkImageActor>::New();
+            }
+            // Use the colormap output (which has the window/level applied)
+            if (i < (int)colormaps.size() && colormaps[i]) {
+                m_slicePlaneActors[i]->GetMapper()->SetInputConnection(
+                    colormaps[i]->GetOutputPort());
+            }
+            m_slicePlaneActors[i]->SetVisibility(1);
+
+            // Position the plane in 3D space using the reslice axes
+            vtkMatrix4x4* axes = reslices[i]->GetResliceAxes();
+            m_slicePlaneActors[i]->SetPosition(
+                axes->GetElement(0, 3), axes->GetElement(1, 3), axes->GetElement(2, 3));
+
+            m_renderers[1]->AddActor(m_slicePlaneActors[i]);
+        }
+
+        m_vtkRenderWindows[1]->Render();
+    } else {
+        // Remove slice plane actors
+        for (int i = 0; i < 3; ++i) {
+            if (m_slicePlaneActors[i]) {
+                m_renderers[1]->RemoveActor(m_slicePlaneActors[i]);
+            }
+        }
+        m_vtkRenderWindows[1]->Render();
+    }
+
+    updateViews();
+}
+
+void OmniNav::updateSlicePlanes()
+{
+    if (!m_slicePlanesActive) return;
+
+    auto dataManager = getModule<DataManager>();
+    if (!dataManager || dataManager->getCurrentVisualImageIndex() < 0) return;
+
+    Image* img = dataManager->getImages()[dataManager->getCurrentVisualImageIndex()];
+    const auto& reslices = img->getReslices();
+
+    for (int i = 0; i < 3 && i < (int)reslices.size(); ++i) {
+        if (m_slicePlaneActors[i]) {
+            vtkMatrix4x4* axes = reslices[i]->GetResliceAxes();
+            m_slicePlaneActors[i]->SetPosition(
+                axes->GetElement(0, 3), axes->GetElement(1, 3), axes->GetElement(2, 3));
+        }
+    }
+}
+
+// ============================================================
+// Paint Tool: mouse handling in 2D views
+// ============================================================
+void OmniNav::onPaintToggled(bool on)
+{
+    // Paint overlay actors are managed by DataManager
+    auto dataManager = getModule<DataManager>();
+    if (!dataManager) return;
+
+    auto contourRenderers = getContourRenderers();
+    int rendererIdx[3] = { 0, 2, 3 };
+
+    for (int i = 0; i < 3; ++i) {
+        vtkImageActor* overlayActor = dataManager->getPaintOverlayActor(i);
+        if (!overlayActor) continue;
+        int ri = rendererIdx[i];
+        if (ri < contourRenderers.size() && contourRenderers[ri]) {
+            if (on) {
+                contourRenderers[ri]->AddActor(overlayActor);
+            } else {
+                contourRenderers[ri]->RemoveActor(overlayActor);
+            }
+        }
+    }
+
+    updateViews();
+}
+
+void OmniNav::handlePaintMouse(int viewIdx, vtkObject* caller)
+{
+    auto dataManager = getModule<DataManager>();
+    if (!dataManager || !dataManager->isPaintActive()) return;
+
+    vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(caller);
+    if (!iren) return;
+
+    int* clickPos = iren->GetEventPosition();
+
+    // Pick the world position at the click point
+    auto picker = getPicker();
+    if (!picker) return;
+
+    picker->Pick(clickPos[0], clickPos[1], 0, m_renderers[viewIdx]);
+
+    double pos[3];
+    picker->GetPickPosition(pos);
+
+    dataManager->paintAtPosition(viewIdx, pos);
+}
+
+// ============================================================
+// Reset Camera
+// ============================================================
+void OmniNav::onResetCamera()
+{
+    for (int i = 0; i < 4; ++i) {
+        if (m_renderers[i]) {
+            m_renderers[i]->ResetCamera();
+        }
+    }
+    updateViews();
+}
+
 void OmniNav::clearProjectPipelines()
 {
     auto contourRenderers = getContourRenderers();
@@ -1583,6 +1731,16 @@ void OmniNav::onUpdateSlice(int view_num)
     // Sync threshold mask overlay with current slice position.
     if (m_thresholdOverlayActive) {
         dataManager->syncThresholdResliceAxes();
+    }
+
+    // Sync paint overlay with current slice position.
+    if (dataManager->isPaintActive()) {
+        dataManager->syncPaintResliceAxes();
+    }
+
+    // Update slice planes in 3D view.
+    if (m_slicePlanesActive) {
+        updateSlicePlanes();
     }
 }
 

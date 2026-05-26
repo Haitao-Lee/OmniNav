@@ -63,6 +63,7 @@ private:
     std::vector<vtkSmartPointer<vtkImageReslice>> m_reslices;
 public:
     const std::vector<vtkSmartPointer<vtkImageReslice>>& getReslices() const { return m_reslices; }
+    const std::vector<vtkSmartPointer<vtkImageMapToColors>>& getColormaps() const { return m_colormaps; }
 private:
     std::vector<vtkSmartPointer<vtkImageMapToColors>> m_colormaps;
     vtkSmartPointer<vtkVolumeProperty> m_volumeProperty;

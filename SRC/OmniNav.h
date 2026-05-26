@@ -65,6 +65,11 @@ private:
 
     // Location mode state
     bool m_locationActive = false;
+
+    // Slice planes state
+    bool m_slicePlanesActive = false;
+    vtkSmartPointer<vtkImageActor> m_slicePlaneActors[3];
+
     struct ProjectPipeline {
         vtkSmartPointer<vtkPlane> plane;
         vtkSmartPointer<vtkCutter> cutter;
@@ -123,4 +128,15 @@ private slots:
 
     // Location
     void onLocationToggled(bool on);
+
+    // Slice Planes
+    void onSlicePlanesToggled(bool on);
+    void updateSlicePlanes();
+
+    // Paint Tool
+    void onPaintToggled(bool on);
+    void handlePaintMouse(int viewIdx, vtkObject* caller);
+
+    // Reset Camera
+    void onResetCamera();
 };

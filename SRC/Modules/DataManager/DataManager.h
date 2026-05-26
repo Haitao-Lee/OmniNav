@@ -16,6 +16,7 @@
 #include <vtkImageActor.h>
 #include <vtkImageReslice.h>
 #include <vtkMarchingCubes.h>
+#include <vtkImageData.h>
 #include "BaseModule.h"
 #include "ui_DataManager.h"
 #include "Image.h"
@@ -121,6 +122,9 @@ signals:
     void signalProjectToggled(bool on);
     void signalThresholdToggled(bool on);
     void signalLocationToggled(bool on);
+    void signalSlicePlanesToggled(bool on);
+    void signalPaintToggled(bool on);
+    void signalResetCamera();
 
 private:
     Ui::DataManagerClass ui;
@@ -166,6 +170,17 @@ private:
     vtkSmartPointer<vtkImageMapToColors> m_thresholdColorMap[3];
     vtkSmartPointer<vtkImageActor> m_thresholdOverlayActors[3];
     vtkSmartPointer<vtkLookupTable> m_thresholdLut;
+
+    // Slice planes state
+    bool m_slicePlanesActive = false;
+
+    // Paint tool state
+    bool m_paintActive = false;
+    int m_brushRadius = 5;
+    vtkSmartPointer<vtkImageData> m_paintLabelmap;
+    vtkSmartPointer<vtkImageMapToColors> m_paintColorMap[3];
+    vtkSmartPointer<vtkImageActor> m_paintOverlayActors[3];
+    vtkSmartPointer<vtkLookupTable> m_paintLut;
 
     void init() override;
     void initSplitters() override;
@@ -223,6 +238,8 @@ private slots:
     void onVolumeCalculation();
     void onProjectToggled(bool checked);
     void onThresholdToggled(bool checked);
+    void onSlicePlanesToggled(bool checked);
+    void onPaintToggled(bool checked);
 
 public:
     void receiveMeasurePoint(double x, double y, double z);
@@ -231,4 +248,13 @@ public:
     }
     void syncThresholdResliceAxes();
     void updateThresholdMask();
+
+    // Paint tool
+    bool isPaintActive() const { return m_paintActive; }
+    void paintAtPosition(int viewIdx, double worldPos[3]);
+    void updatePaintOverlay(int viewIdx);
+    vtkImageActor* getPaintOverlayActor(int i) const {
+        return (i >= 0 && i < 3) ? m_paintOverlayActors[i] : nullptr;
+    }
+    void syncPaintResliceAxes();
 };

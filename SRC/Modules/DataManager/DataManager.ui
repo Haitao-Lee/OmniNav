@@ -116,11 +116,11 @@ border-color: rgb(100, 100, 100);</string>
              </font>
             </property>
             <property name="toolTip">
-             <string>reset</string>
+             <string>Reset all camera views to default position</string>
             </property>
             <property name="styleSheet">
              <string notr="true">background-color: rgb(120, 120, 120);
-image: url(:/DataManager/3D.png);</string>
+image: url(:/DataManager/reset1.png);</string>
             </property>
             <property name="text">
              <string/>
@@ -159,7 +159,7 @@ image: url(:/DataManager/segmentation.png);</string>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QPushButton" name="registration_btn">
+           <widget class="QPushButton" name="paint_btn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -175,20 +175,17 @@ image: url(:/DataManager/segmentation.png);</string>
              </font>
             </property>
             <property name="toolTip">
-             <string>registration</string>
+             <string>Paint tool: draw on 2D slices, toggle off to reconstruct 3D mesh</string>
             </property>
             <property name="styleSheet">
              <string notr="true">background-color: rgb(120, 120, 120);
-image: url(:/DataManager/anzhuangguanli.png);</string>
+image: url(:/DataManager/drawing_tools20.png);</string>
             </property>
             <property name="text">
              <string/>
             </property>
             <property name="checkable">
              <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -382,7 +379,7 @@ image: url(:/DataManager/slice.png);</string>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QPushButton" name="connect_btn">
+           <widget class="QPushButton" name="sliceplanes_btn">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -398,23 +395,17 @@ image: url(:/DataManager/slice.png);</string>
              </font>
             </property>
             <property name="toolTip">
-             <string>connect to NDI tracker</string>
+             <string>Toggle slice planes visibility in 3D view</string>
             </property>
             <property name="styleSheet">
              <string notr="true">background-color: rgb(120, 120, 120);
-image: url(:/DataManager/localization.png);</string>
+image: url(:/DataManager/visible.png);</string>
             </property>
             <property name="text">
              <string/>
             </property>
-            <property name="icon">
-             <iconset theme="accessories-calculator"/>
-            </property>
             <property name="checkable">
              <bool>true</bool>
-            </property>
-            <property name="flat">
-             <bool>false</bool>
             </property>
            </widget>
           </item>

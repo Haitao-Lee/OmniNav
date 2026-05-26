@@ -137,15 +137,15 @@ void DataManager::initButton()
         btn->setStyleSheet(finalStyle);
     };
 
-    applyTheme(ui.connect_btn, textBaseStyle, pressedGreen, true);
-    applyTheme(ui.registration_btn, textBaseStyle, pressedGreen, true);
+    applyTheme(ui.sliceplanes_btn, textBaseStyle, pressedGreen, true);
+    applyTheme(ui.paint_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.threshold_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.reset_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.measure_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.volume_btn, textBaseStyle, pressedGreen, true);
     applyTheme(ui.project_btn, textBaseStyle, pressedGreen, true);
 
-    // Add checked state style for toggle buttons (measure, project).
+    // Add checked state style for toggle buttons.
     const QString checkedStyle =
         "QPushButton:checked{"
         "background-color:rgba(46,204,113,255);"
@@ -160,6 +160,8 @@ void DataManager::initButton()
     ui.measure_btn->setStyleSheet(ui.measure_btn->styleSheet() + checkedStyle);
     ui.project_btn->setStyleSheet(ui.project_btn->styleSheet() + checkedStyle);
     ui.threshold_btn->setStyleSheet(ui.threshold_btn->styleSheet() + checkedStyle);
+    ui.sliceplanes_btn->setStyleSheet(ui.sliceplanes_btn->styleSheet() + checkedStyle);
+    ui.paint_btn->setStyleSheet(ui.paint_btn->styleSheet() + checkedStyle);
 
     applyTheme(ui.callibration_btn, textBaseStyle, pressedDark, true);
     applyTheme(ui.robotics_btn, textBaseStyle, pressedDark, true);
@@ -641,6 +643,11 @@ void DataManager::createActions()
     connect(ui.threshold_btn, &QPushButton::toggled, this, &DataManager::onThresholdToggled);
     connect(ui.location_btn, &QPushButton::toggled, this, [this](bool checked) {
         emit signalLocationToggled(checked);
+    });
+    connect(ui.sliceplanes_btn, &QPushButton::toggled, this, &DataManager::onSlicePlanesToggled);
+    connect(ui.paint_btn, &QPushButton::toggled, this, &DataManager::onPaintToggled);
+    connect(ui.reset_btn, &QPushButton::clicked, this, [this]() {
+        emit signalResetCamera();
     });
 
     connect(ui.image_tw, &QTableWidget::itemDoubleClicked, this, &DataManager::onImageTableDoubleClicked);
@@ -3261,6 +3268,317 @@ void DataManager::syncThresholdResliceAxes()
                 m_thresholdColorMap[i]->GetInputConnection(0, 0)->GetProducer());
             if (maskReslice && reslices[i]) {
                 maskReslice->SetResliceAxes(reslices[i]->GetResliceAxes());
+            }
+        }
+    }
+}
+
+// ============================================================
+// Slice Planes: toggle slice plane visibility in 3D view
+// ============================================================
+void DataManager::onSlicePlanesToggled(bool checked)
+{
+    m_slicePlanesActive = checked;
+    emit signalSlicePlanesToggled(checked);
+}
+
+// ============================================================
+// Paint Tool: draw on 2D slices, reconstruct on toggle off
+// ============================================================
+void DataManager::onPaintToggled(bool checked)
+{
+    m_paintActive = checked;
+
+    if (checked) {
+        // Initialize labelmap with same dimensions as current image
+        if (m_currentImageIndex < 0 || m_currentImageIndex >= (int)m_images.size()) {
+            printInfo("No image loaded for painting.");
+            ui.paint_btn->setChecked(false);
+            m_paintActive = false;
+            return;
+        }
+
+        Image* img = m_images[m_currentImageIndex];
+        vtkImageData* imageData = img->getImageData();
+        if (!imageData) {
+            printInfo("Image data is empty.");
+            ui.paint_btn->setChecked(false);
+            m_paintActive = false;
+            return;
+        }
+
+        int extent[6];
+        imageData->GetExtent(extent);
+        double origin[3], spacing[3];
+        imageData->GetOrigin(origin);
+        imageData->GetSpacing(spacing);
+
+        // Create labelmap (unsigned char, 0=background, 1=painted)
+        m_paintLabelmap = vtkSmartPointer<vtkImageData>::New();
+        m_paintLabelmap->SetExtent(extent);
+        m_paintLabelmap->SetOrigin(origin);
+        m_paintLabelmap->SetSpacing(spacing);
+        m_paintLabelmap->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+        memset(m_paintLabelmap->GetScalarPointer(), 0,
+               (extent[1] - extent[0] + 1) * (extent[3] - extent[2] + 1) * (extent[5] - extent[4] + 1));
+
+        // Create LUT for paint overlay (semi-transparent red)
+        m_paintLut = vtkSmartPointer<vtkLookupTable>::New();
+        m_paintLut->SetNumberOfTableValues(2);
+        m_paintLut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);      // transparent
+        m_paintLut->SetTableValue(1, 1.0, 0.0, 0.0, 0.5);      // semi-transparent red
+        m_paintLut->SetTableRange(0, 1);
+        m_paintLut->Build();
+
+        // Create overlay pipeline for each 2D view
+        const auto& reslices = img->getReslices();
+        for (int i = 0; i < 3 && i < (int)reslices.size(); ++i) {
+            vtkSmartPointer<vtkImageReslice> paintReslice = vtkSmartPointer<vtkImageReslice>::New();
+            paintReslice->SetInputData(m_paintLabelmap);
+            paintReslice->SetOutputDimensionality(2);
+            paintReslice->SetInterpolationModeToNearestNeighbor();
+            paintReslice->SetResliceAxes(reslices[i]->GetResliceAxes());
+
+            m_paintColorMap[i] = vtkSmartPointer<vtkImageMapToColors>::New();
+            m_paintColorMap[i]->SetLookupTable(m_paintLut);
+            m_paintColorMap[i]->SetInputConnection(paintReslice->GetOutputPort());
+            m_paintColorMap[i]->PassAlphaToOutputOn();
+            m_paintColorMap[i]->Update();
+
+            m_paintOverlayActors[i] = vtkSmartPointer<vtkImageActor>::New();
+            m_paintOverlayActors[i]->GetMapper()->SetInputConnection(
+                m_paintColorMap[i]->GetOutputPort());
+            m_paintOverlayActors[i]->SetOpacity(0.5);
+        }
+
+        emit signalPaintToggled(true);
+        printInfo("Paint mode ON. Drag on 2D slices to paint. Brush radius: " + QString::number(m_brushRadius));
+    } else {
+        // Toggle off: ask to reconstruct
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this, "Paint Tool",
+            "Reconstruct 3D mesh from painted region?",
+            QMessageBox::Yes | QMessageBox::No);
+
+        emit signalPaintToggled(false);
+
+        if (reply != QMessageBox::Yes) {
+            printInfo("Paint discarded.");
+            m_paintLabelmap = nullptr;
+            return;
+        }
+
+        // Marching cubes on labelmap
+        if (!m_paintLabelmap) {
+            printInfo("No painted region.");
+            return;
+        }
+
+        vtkSmartPointer<vtkMarchingCubes> mc = vtkSmartPointer<vtkMarchingCubes>::New();
+        mc->SetInputData(m_paintLabelmap);
+        mc->SetValue(0, 0.5);
+        mc->ComputeNormalsOn();
+        mc->Update();
+
+        vtkPolyData* output = mc->GetOutput();
+        if (!output || output->GetNumberOfPoints() == 0) {
+            printInfo("Paint region is empty, no mesh created.");
+            m_paintLabelmap = nullptr;
+            return;
+        }
+
+        vtkSmartPointer<vtkPolyData> polyCopy = vtkSmartPointer<vtkPolyData>::New();
+        polyCopy->DeepCopy(output);
+
+        Model3D* newMesh = new Model3D();
+        newMesh->setPolydata(polyCopy);
+        newMesh->setName("Paint_Mesh");
+
+        QJsonObject dmConfig = m_config["DataManager"].toObject();
+        QJsonObject meshConfig = dmConfig["meshes"].toObject();
+        QJsonArray colorList = meshConfig["colors"].toArray();
+        double r = 1.0, g = 0.0, b = 0.0;
+        if (!colorList.isEmpty()) {
+            int index = m_meshes.size() % colorList.size();
+            QJsonArray rgb = colorList[index].toArray();
+            r = rgb[0].toDouble();
+            g = rgb[1].toDouble();
+            b = rgb[2].toDouble();
+        }
+        double c[3] = { r, g, b };
+        newMesh->setColor(c);
+        newMesh->setOpacity(meshConfig["opacity"].toDouble(1.0));
+        newMesh->setVisible(meshConfig["visible"].toInt(1));
+        newMesh->createActor();
+
+        m_meshes.push_back(newMesh);
+
+        // Add table row
+        int row = ui.mesh_tw->rowCount();
+        ui.mesh_tw->insertRow(row);
+
+        QTableWidgetItem* nameItem = new QTableWidgetItem(QString::fromStdString(newMesh->getName()));
+        nameItem->setTextAlignment(Qt::AlignCenter);
+        nameItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        ui.mesh_tw->setItem(row, 0, nameItem);
+
+        QWidget* visContainer = new QWidget();
+        visContainer->setStyleSheet("background-color: transparent;");
+        QHBoxLayout* visLayout = new QHBoxLayout(visContainer);
+        visLayout->setContentsMargins(0, 0, 0, 0);
+        visLayout->setAlignment(Qt::AlignCenter);
+        QPushButton* visBtn = new QPushButton();
+        visBtn->setFlat(true);
+        visBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        QString visStyle = "QPushButton { image: url(:/DataManager/visible.png); border: none; }";
+        QString unvisStyle = "QPushButton { image: url(:/DataManager/unvisible.png); border: none; }";
+        visBtn->setStyleSheet(newMesh->getVisible() ? visStyle : unvisStyle);
+        connect(visBtn, &QPushButton::clicked, [=]() {
+            newMesh->setVisible(!newMesh->getVisible());
+            visBtn->setStyleSheet(newMesh->getVisible() ? visStyle : unvisStyle);
+            emit signalUpdateViews();
+        });
+        visLayout->addWidget(visBtn);
+        ui.mesh_tw->setCellWidget(row, 1, visContainer);
+
+        QWidget* opContainer = new QWidget();
+        opContainer->setStyleSheet("background-color: transparent;");
+        QHBoxLayout* opLayout = new QHBoxLayout(opContainer);
+        opLayout->setContentsMargins(4, 0, 4, 0);
+        opLayout->setAlignment(Qt::AlignCenter);
+        QSlider* slider = new QSlider(Qt::Horizontal);
+        slider->setRange(0, 100);
+        slider->setValue(static_cast<int>(newMesh->getOpacity() * 100));
+        slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        connect(slider, &QSlider::valueChanged, [=](int value) {
+            newMesh->setOpacity(value / 100.0);
+            emit signalUpdateViews();
+        });
+        opLayout->addWidget(slider);
+        ui.mesh_tw->setCellWidget(row, 2, opContainer);
+
+        QWidget* colorContainer = new QWidget();
+        QHBoxLayout* colorLayout = new QHBoxLayout(colorContainer);
+        colorContainer->setStyleSheet("background-color: transparent;");
+        colorLayout->setContentsMargins(2, 2, 2, 2);
+        colorLayout->setAlignment(Qt::AlignCenter);
+        QPushButton* colorBtn = new QPushButton();
+        colorBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        QString colorStyle = QString("background-color: rgb(%1, %2, %3); border: 1px solid gray; border-radius: 4px;")
+            .arg(r * 255).arg(g * 255).arg(b * 255);
+        colorBtn->setStyleSheet(colorStyle);
+        connect(colorBtn, &QPushButton::clicked, [=]() {
+            const double* init_c = newMesh->getColor();
+            QColor initColor = QColor::fromRgbF(init_c[0], init_c[1], init_c[2]);
+            QColor newColor = QColorDialog::getColor(initColor, this, "Select Model Color");
+            if (newColor.isValid()) {
+                double rgb[3] = { newColor.redF(), newColor.greenF(), newColor.blueF() };
+                newMesh->setColor(rgb);
+                colorBtn->setStyleSheet(QString("background-color: %1; border: 1px solid gray; border-radius: 4px;").arg(newColor.name()));
+            }
+            emit signalUpdateViews();
+        });
+        colorLayout->addWidget(colorBtn);
+        ui.mesh_tw->setCellWidget(row, 3, colorContainer);
+
+        QWidget* toolContainer = new QWidget();
+        toolContainer->setStyleSheet("background-color: transparent;");
+        QHBoxLayout* toolLayout = new QHBoxLayout(toolContainer);
+        toolLayout->setContentsMargins(2, 0, 2, 0);
+        toolLayout->setAlignment(Qt::AlignCenter);
+        QComboBox* toolCbb = new QComboBox();
+        toolCbb->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        toolCbb->addItem("None");
+        for (const auto& tool : m_tools) {
+            if (tool) toolCbb->addItem(QString::fromStdString(tool->getName()));
+        }
+        toolLayout->addWidget(toolCbb);
+        ui.mesh_tw->setCellWidget(row, 4, toolContainer);
+
+        QTableWidgetItem* orientItem = new QTableWidgetItem(QString::fromStdString(newMesh->getOrientation()));
+        orientItem->setTextAlignment(Qt::AlignCenter);
+        orientItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        ui.mesh_tw->setItem(row, 5, orientItem);
+
+        emit signalAddMesh(newMesh);
+        printInfo("Paint mesh created: " + QString::number(output->GetNumberOfPoints()) + " points");
+
+        m_paintLabelmap = nullptr;
+    }
+}
+
+void DataManager::paintAtPosition(int viewIdx, double worldPos[3])
+{
+    if (!m_paintActive || !m_paintLabelmap) return;
+    if (m_currentImageIndex < 0 || m_currentImageIndex >= (int)m_images.size()) return;
+
+    Image* img = m_images[m_currentImageIndex];
+    vtkImageData* imageData = img->getImageData();
+    if (!imageData) return;
+
+    double origin[3], spacing[3];
+    imageData->GetOrigin(origin);
+    imageData->GetSpacing(spacing);
+    int extent[6];
+    imageData->GetExtent(extent);
+
+    // Convert world position to voxel index
+    int voxelIdx[3];
+    for (int d = 0; d < 3; ++d) {
+        voxelIdx[d] = static_cast<int>((worldPos[d] - origin[d]) / spacing[d] + 0.5);
+    }
+
+    // Paint a sphere of voxels
+    int r = m_brushRadius;
+    for (int dz = -r; dz <= r; ++dz) {
+        for (int dy = -r; dy <= r; ++dy) {
+            for (int dx = -r; dx <= r; ++dx) {
+                if (dx*dx + dy*dy + dz*dz > r*r) continue;
+
+                int ix = voxelIdx[0] + dx;
+                int iy = voxelIdx[1] + dy;
+                int iz = voxelIdx[2] + dz;
+
+                // Check bounds
+                if (ix < extent[0] || ix > extent[1]) continue;
+                if (iy < extent[2] || iy > extent[3]) continue;
+                if (iz < extent[4] || iz > extent[5]) continue;
+
+                unsigned char* ptr = static_cast<unsigned char*>(
+                    m_paintLabelmap->GetScalarPointer(ix, iy, iz));
+                if (ptr) *ptr = 1;
+            }
+        }
+    }
+
+    m_paintLabelmap->Modified();
+
+    // Update overlay for all views
+    for (int i = 0; i < 3; ++i) {
+        updatePaintOverlay(i);
+    }
+
+    emit signalUpdateViews();
+}
+
+void DataManager::updatePaintOverlay(int viewIdx)
+{
+    if (!m_paintActive || !m_paintColorMap[viewIdx]) return;
+    m_paintColorMap[viewIdx]->Update();
+}
+
+void DataManager::syncPaintResliceAxes()
+{
+    if (!m_paintActive || m_currentImageIndex < 0) return;
+    Image* img = m_images[m_currentImageIndex];
+    const auto& reslices = img->getReslices();
+
+    for (int i = 0; i < 3; ++i) {
+        if (m_paintColorMap[i] && i < (int)reslices.size()) {
+            vtkImageReslice* paintReslice = vtkImageReslice::SafeDownCast(
+                m_paintColorMap[i]->GetInputConnection(0, 0)->GetProducer());
+            if (paintReslice && reslices[i]) {
+                paintReslice->SetResliceAxes(reslices[i]->GetResliceAxes());
             }
         }
     }
